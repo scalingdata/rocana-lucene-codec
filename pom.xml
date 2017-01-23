@@ -49,8 +49,10 @@
     <!-- alphabetized properties for versions -->
     <version.javadoc.plugin>2.9.1</version.javadoc.plugin>
     <version.junit>4.12</version.junit>
+    <version.log4j>1.2.17</version.log4j>
     <version.lucene>5.5.0</version.lucene>
     <version.rat.plugin>0.11</version.rat.plugin>
+    <version.slf4j>1.7.5</version.slf4j>
     <version.source.plugin>2.4</version.source.plugin>
 
     <!-- set Java 7 as the default -->
@@ -72,12 +74,32 @@
       <version>${version.lucene}</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${version.slf4j}</version>
+    </dependency>
+
     <!-- Test dependencies (alphabetized by groupId, artifactId) -->
 
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${version.junit}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>${version.log4j}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>${version.slf4j}</version>
       <scope>test</scope>
     </dependency>
 
