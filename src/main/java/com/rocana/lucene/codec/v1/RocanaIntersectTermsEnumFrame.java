@@ -97,7 +97,7 @@ final class RocanaIntersectTermsEnumFrame {
 
   int numFollowFloorBlocks;
   int nextFloorLabel;
-        
+
   final Transition transition = new Transition();
   int transitionIndex;
   int transitionCount;
@@ -107,7 +107,7 @@ final class RocanaIntersectTermsEnumFrame {
   FST.Arc<BytesRef> arc;
 
   final BlockTermState termState;
-  
+
   // metadata buffer, holding monotonic values
   final long[] longs;
 
@@ -233,7 +233,7 @@ final class RocanaIntersectTermsEnumFrame {
 
     termState.termBlockOrd = 0;
     nextEnt = 0;
-         
+
     // metadata
     numBytes = ite.in.readVInt();
     if (bytes.length < numBytes) {
@@ -366,7 +366,7 @@ final class RocanaIntersectTermsEnumFrame {
       if (ite.fr.fieldInfo.getIndexOptions() != IndexOptions.DOCS) {
         termState.totalTermFreq = termState.docFreq + statsReader.readVLong();
       }
-      // metadata 
+      // metadata
       for (int i = 0; i < ite.fr.longsSize; i++) {
         longs[i] = bytesReader.readVLong();
       }

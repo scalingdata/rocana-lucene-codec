@@ -55,9 +55,9 @@ import org.apache.lucene.util.IOUtils;
  * modifications.
  *
  * @see RocanaSearchCodecV1
- * 
+ *
  * Original Lucene documentation:
- * BlockTree statistics for a single field 
+ * BlockTree statistics for a single field
  * returned by {@link FieldReader#getStats()}.
  * @lucene.internal
  */
@@ -79,7 +79,7 @@ public class RocanaStats {
   /** The number of floor blocks (meta-blocks larger than the
    *  allowed {@code maxItemsPerBlock}) in the terms file. */
   public int floorBlockCount;
-    
+
   /** The number of sub-blocks within the floor blocks. */
   public int floorSubBlockCount;
 
@@ -184,7 +184,7 @@ public class RocanaStats {
     } catch (UnsupportedEncodingException bogus) {
       throw new RuntimeException(bogus);
     }
-      
+
     out.println("  index FST:");
     out.println("    " + indexNumBytes + " bytes");
     out.println("  terms:");

@@ -112,7 +112,7 @@ import org.apache.lucene.util.fst.Outputs;
 public final class RocanaBlockTreeTermsReader extends FieldsProducer {
 
   static final Outputs<BytesRef> FST_OUTPUTS = ByteSequenceOutputs.getSingleton();
-  
+
   static final BytesRef NO_OUTPUT = FST_OUTPUTS.getNoOutput();
 
   static final int OUTPUT_FLAGS_NUM_BITS = 2;
@@ -159,7 +159,7 @@ public final class RocanaBlockTreeTermsReader extends FieldsProducer {
   private long indexDirOffset;
 
   final String segment;
-  
+
   final int version;
 
   final boolean anyAutoPrefixTerms;
@@ -168,10 +168,10 @@ public final class RocanaBlockTreeTermsReader extends FieldsProducer {
   public RocanaBlockTreeTermsReader(PostingsReaderBase postingsReader, SegmentReadState state) throws IOException {
     boolean success = false;
     IndexInput indexIn = null;
-    
+
     this.postingsReader = postingsReader;
     this.segment = state.segmentInfo.name;
-    
+
     String termsName = IndexFileNames.segmentFileName(segment, state.segmentSuffix, TERMS_EXTENSION);
     try {
       termsIn = state.directory.openInput(termsName, state.context);
@@ -199,14 +199,14 @@ public final class RocanaBlockTreeTermsReader extends FieldsProducer {
       String indexName = IndexFileNames.segmentFileName(segment, state.segmentSuffix, TERMS_INDEX_EXTENSION);
       indexIn = state.directory.openInput(indexName, state.context);
       CodecUtil.checkIndexHeader(indexIn, TERMS_INDEX_CODEC_NAME, version, version, state.segmentInfo.getId(), state.segmentSuffix);
-      
+
       // IMPORTANT: comment out this one line to prevent checksumming the entire file.
       //            This is the reason we have a custom Lucene codec and forked Lucene classes.
       //CodecUtil.checksumEntireFile(indexIn);
 
       // Have PostingsReader init itself
       postingsReader.init(termsIn, state);
-      
+
       // NOTE: data file is too costly to verify checksum against all the bytes on open,
       // but for now we at least verify proper structure of the checksum footer: which looks
       // for FOOTER_MAGIC + algorithmID. This is cheap and can detect some forms of corruption
@@ -258,14 +258,14 @@ public final class RocanaBlockTreeTermsReader extends FieldsProducer {
           throw new CorruptIndexException("invalid sumTotalTermFreq: " + sumTotalTermFreq + " sumDocFreq: " + sumDocFreq, termsIn);
         }
         final long indexStartFP = indexIn.readVLong();
-        RocanaFieldReader previous = fields.put(fieldInfo.name,       
+        RocanaFieldReader previous = fields.put(fieldInfo.name,
                                           new RocanaFieldReader(this, fieldInfo, numTerms, rootCode, sumTotalTermFreq, sumDocFreq, docCount,
                                                           indexStartFP, longsSize, indexIn, minTerm, maxTerm));
         if (previous != null) {
           throw new CorruptIndexException("duplicate field: " + fieldInfo.name, termsIn);
         }
       }
-      
+
       indexIn.close();
       success = true;
     } finally {
@@ -301,7 +301,7 @@ public final class RocanaBlockTreeTermsReader extends FieldsProducer {
   public void close() throws IOException {
     try {
       IOUtils.close(termsIn, postingsReader);
-    } finally { 
+    } finally {
       // Clear so refs to terms index is GCable even if
       // app hangs onto us:
       fields.clear();
@@ -358,10 +358,10 @@ public final class RocanaBlockTreeTermsReader extends FieldsProducer {
   }
 
   @Override
-  public void checkIntegrity() throws IOException { 
+  public void checkIntegrity() throws IOException {
     // term dictionary
     CodecUtil.checksumEntireFile(termsIn);
-      
+
     // postings
     postingsReader.checkIntegrity();
   }

@@ -57,7 +57,7 @@ import org.apache.lucene.util.fst.Util;
  * modifications.
  *
  * @see RocanaSearchCodecV1
- * 
+ *
  * Original Lucene documentation:
  *  Iterates through terms in this field.  This implementation skips
  *  any auto-prefix terms it encounters. */
@@ -98,7 +98,7 @@ final class RocanaSegmentTermsEnum extends TermsEnum {
     //   System.out.println("BTTR.init seg=" + fr.parent.segment);
     // }
     stack = new RocanaSegmentTermsEnumFrame[0];
-        
+
     // Used to hold seek by TermState, or cached seek
     staticFrame = new RocanaSegmentTermsEnumFrame(this, -1);
 
@@ -134,7 +134,7 @@ final class RocanaSegmentTermsEnum extends TermsEnum {
     //System.out.println();
     // computeBlockStats().print(System.out);
   }
-      
+
   // Not private to avoid synthetic access$NNN methods
   void initIndexInput() {
     if (this.in == null) {
@@ -152,7 +152,7 @@ final class RocanaSegmentTermsEnum extends TermsEnum {
     if (fr.index != null) {
       stats.indexNumBytes = fr.index.ramBytesUsed();
     }
-        
+
     currentFrame = staticFrame;
     FST.Arc<BytesRef> arc;
     if (fr.index != null) {
@@ -381,7 +381,7 @@ final class RocanaSegmentTermsEnum extends TermsEnum {
       assert arc.isFinal();
       output = arc.output;
       targetUpto = 0;
-          
+
       RocanaSegmentTermsEnumFrame lastFrame = stack[0];
       assert validIndexPrefix <= term.length();
 
@@ -514,7 +514,7 @@ final class RocanaSegmentTermsEnum extends TermsEnum {
         // if (DEBUG) {
         //   System.out.println("    index: index exhausted label=" + ((char) targetLabel) + " " + toHex(targetLabel));
         // }
-            
+
         validIndexPrefix = currentFrame.prefix;
         //validIndexPrefix = targetUpto;
 
@@ -532,7 +532,7 @@ final class RocanaSegmentTermsEnum extends TermsEnum {
 
         currentFrame.loadBlock();
 
-        final SeekStatus result = currentFrame.scanToTerm(target, true);            
+        final SeekStatus result = currentFrame.scanToTerm(target, true);
         if (result == SeekStatus.FOUND) {
           // if (DEBUG) {
           //   System.out.println("  return FOUND term=" + term.utf8ToString() + " " + term);
@@ -584,7 +584,7 @@ final class RocanaSegmentTermsEnum extends TermsEnum {
 
     currentFrame.loadBlock();
 
-    final SeekStatus result = currentFrame.scanToTerm(target, true);            
+    final SeekStatus result = currentFrame.scanToTerm(target, true);
     if (result == SeekStatus.FOUND) {
       // if (DEBUG) {
       //   System.out.println("  return FOUND term=" + term.utf8ToString() + " " + term);
@@ -638,7 +638,7 @@ final class RocanaSegmentTermsEnum extends TermsEnum {
       assert arc.isFinal();
       output = arc.output;
       targetUpto = 0;
-          
+
       RocanaSegmentTermsEnumFrame lastFrame = stack[0];
       assert validIndexPrefix <= term.length();
 
@@ -771,7 +771,7 @@ final class RocanaSegmentTermsEnum extends TermsEnum {
         // if (DEBUG) {
         //   System.out.println("    index: index exhausted label=" + ((char) targetLabel) + " " + targetLabel);
         // }
-            
+
         validIndexPrefix = currentFrame.prefix;
         //validIndexPrefix = targetUpto;
 
@@ -1048,7 +1048,7 @@ final class RocanaSegmentTermsEnum extends TermsEnum {
       // }
     }
   }
-      
+
   @Override
   public TermState termState() throws IOException {
     assert !eof;

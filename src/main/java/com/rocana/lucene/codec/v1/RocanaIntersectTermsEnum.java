@@ -59,7 +59,7 @@ import org.apache.lucene.util.fst.Outputs;
  * modifications.
  *
  * @see RocanaSearchCodecV1
- * 
+ *
  * Original Lucene documentation:
  *  This is used to implement efficient {@link Terms#intersect} for
  *  block-tree.  Note that it cannot seek, except for the initial term on
@@ -80,7 +80,7 @@ final class RocanaIntersectTermsEnum extends TermsEnum {
   final static Outputs<BytesRef> fstOutputs = ByteSequenceOutputs.getSingleton();
 
   RocanaIntersectTermsEnumFrame[] stack;
-      
+
   @SuppressWarnings({"rawtypes","unchecked"}) private FST.Arc<BytesRef>[] arcs = new FST.Arc[5];
 
   final RunAutomaton runAutomaton;
@@ -102,7 +102,7 @@ final class RocanaIntersectTermsEnum extends TermsEnum {
   private final int sinkState;
 
   private BytesRef savedStartTerm;
-      
+
   /** True if we did return the current auto-prefix term */
   private boolean useAutoPrefixTerm;
 
@@ -207,7 +207,7 @@ final class RocanaIntersectTermsEnum extends TermsEnum {
     assert currentFrame != null;
 
     final RocanaIntersectTermsEnumFrame f = getFrame(currentFrame == null ? 0 : 1+currentFrame.ord);
-        
+
     f.fp = f.fpOrig = currentFrame.lastSubFP;
     f.prefix = currentFrame.prefix + currentFrame.suffix;
     f.setState(state);
@@ -518,7 +518,7 @@ final class RocanaIntersectTermsEnum extends TermsEnum {
     public Throwable fillInStackTrace() {
       // Do nothing:
       return this;
-    }    
+    }
   }
 
   @Override

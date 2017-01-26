@@ -57,7 +57,7 @@ import org.apache.lucene.util.TestUtil;
 public class TestBlockPostingsFormat2 extends LuceneTestCase {
   Directory dir;
   RandomIndexWriter iw;
-  
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -67,7 +67,7 @@ public class TestBlockPostingsFormat2 extends LuceneTestCase {
     iw = new RandomIndexWriter(random(), dir, iwc);
     iw.setDoRandomForceMerge(false); // we will ourselves
   }
-  
+
   @Override
   public void tearDown() throws Exception {
     iw.close();
@@ -81,7 +81,7 @@ public class TestBlockPostingsFormat2 extends LuceneTestCase {
     dir.close(); // just force a checkindex for now
     super.tearDown();
   }
-  
+
   private Document newDocument() {
     Document doc = new Document();
     for (IndexOptions option : IndexOptions.values()) {
@@ -121,7 +121,7 @@ public class TestBlockPostingsFormat2 extends LuceneTestCase {
       iw.addDocument(doc);
     }
   }
-  
+
   /** tests terms with ttf = blocksize */
   public void testTTFBlockSize() throws Exception {
     Document doc = newDocument();
@@ -132,13 +132,13 @@ public class TestBlockPostingsFormat2 extends LuceneTestCase {
       iw.addDocument(doc);
     }
   }
-  
+
   /** tests terms with ttf % blocksize = 0 */
   public void testTTFBlockSizeMultiple() throws Exception {
     Document doc = newDocument();
     for (int i = 0; i < RocanaLucene50PostingsFormat.BLOCK_SIZE/2; i++) {
       for (IndexableField f : doc.getFields()) {
-        String proto = (f.name() + " " + f.name() + " " + f.name() + " " + f.name() + " " 
+        String proto = (f.name() + " " + f.name() + " " + f.name() + " " + f.name() + " "
                        + f.name() + "_2 " + f.name() + "_2 " + f.name() + "_2 " + f.name() + "_2");
         StringBuilder val = new StringBuilder();
         for (int j = 0; j < 16; j++) {

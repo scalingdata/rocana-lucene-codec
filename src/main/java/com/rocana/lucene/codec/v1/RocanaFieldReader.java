@@ -59,7 +59,7 @@ import org.apache.lucene.util.fst.FST;
  * modifications.
  *
  * @see RocanaSearchCodecV1
- * 
+ *
  * Original Lucene documentation:
  * BlockTree's implementation of {@link Terms}.
  * @lucene.internal
@@ -95,8 +95,8 @@ public final class RocanaFieldReader extends Terms implements Accountable {
     //DEBUG = RocanaBlockTreeTermsReader.DEBUG && fieldInfo.name.equals("id");
     this.parent = parent;
     this.numTerms = numTerms;
-    this.sumTotalTermFreq = sumTotalTermFreq; 
-    this.sumDocFreq = sumDocFreq; 
+    this.sumTotalTermFreq = sumTotalTermFreq;
+    this.sumDocFreq = sumDocFreq;
     this.docCount = docCount;
     this.indexStartFP = indexStartFP;
     this.rootCode = rootCode;
@@ -114,7 +114,7 @@ public final class RocanaFieldReader extends Terms implements Accountable {
       //System.out.println("start=" + indexStartFP + " field=" + fieldInfo.name);
       clone.seek(indexStartFP);
       index = new FST<>(clone, ByteSequenceOutputs.getSingleton());
-        
+
       /*
         if (false) {
         final String dotFileName = segment + "_" + fieldInfo.name + ".dot";
@@ -170,7 +170,7 @@ public final class RocanaFieldReader extends Terms implements Accountable {
   public boolean hasPositions() {
     return fieldInfo.getIndexOptions().compareTo(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS) >= 0;
   }
-    
+
   @Override
   public boolean hasPayloads() {
     return fieldInfo.hasPayloads();
@@ -209,7 +209,7 @@ public final class RocanaFieldReader extends Terms implements Accountable {
     // can we optimize knowing that...?
     return new RocanaIntersectTermsEnum(this, compiled.automaton, compiled.runAutomaton, compiled.commonSuffixRef, startTerm, compiled.sinkState);
   }
-    
+
   @Override
   public long ramBytesUsed() {
     return BASE_RAM_BYTES_USED + ((index!=null)? index.ramBytesUsed() : 0);

@@ -78,9 +78,9 @@ import org.apache.lucene.util.automaton.RegExp;
  * Tests partial enumeration (only pulling a subset of the indexed data)
  */
 public class TestBlockPostingsFormat3 extends LuceneTestCase {
-  private final int MAXDOC = TEST_NIGHTLY ? RocanaLucene50PostingsFormat.BLOCK_SIZE * 20 
+  private final int MAXDOC = TEST_NIGHTLY ? RocanaLucene50PostingsFormat.BLOCK_SIZE * 20
                                           : RocanaLucene50PostingsFormat.BLOCK_SIZE * 3;
-  
+
   // creates 8 fields with different options and does "duels" of fields against each other
   public void test() throws Exception {
     Directory dir = newDirectory();
@@ -109,12 +109,12 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
     // turn this on for a cross-check
     docsOnlyType.setStoreTermVectors(true);
     docsOnlyType.setIndexOptions(IndexOptions.DOCS);
-    
+
     FieldType docsAndFreqsType = new FieldType(TextField.TYPE_NOT_STORED);
     // turn this on for a cross-check
     docsAndFreqsType.setStoreTermVectors(true);
     docsAndFreqsType.setIndexOptions(IndexOptions.DOCS_AND_FREQS);
-    
+
     FieldType positionsType = new FieldType(TextField.TYPE_NOT_STORED);
     // turn these on for a cross-check
     positionsType.setStoreTermVectors(true);
@@ -163,7 +163,7 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
     verify(dir);
     dir.close();
   }
-  
+
   private void verify(Directory dir) throws Exception {
     DirectoryReader ir = DirectoryReader.open(dir);
     for (LeafReaderContext leaf : ir.leaves()) {
@@ -177,9 +177,9 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
     }
     ir.close();
   }
-  
+
   // following code is almost an exact dup of code from TestDuelingCodecs: sorry!
-  
+
   public void assertTerms(Terms leftTerms, Terms rightTerms, boolean deep) throws Exception {
     if (leftTerms == null || rightTerms == null) {
       assertNull(leftTerms);
@@ -187,16 +187,16 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
       return;
     }
     assertTermsStatistics(leftTerms, rightTerms);
-    
+
     // NOTE: we don't assert hasOffsets/hasPositions/hasPayloads because they are allowed to be different
 
     boolean bothHavePositions = leftTerms.hasPositions() && rightTerms.hasPositions();
     TermsEnum leftTermsEnum = leftTerms.iterator();
     TermsEnum rightTermsEnum = rightTerms.iterator();
     assertTermsEnum(leftTermsEnum, rightTermsEnum, true, bothHavePositions);
-    
+
     assertTermsSeeking(leftTerms, rightTerms);
-    
+
     if (deep) {
       int numIntersections = atLeast(3);
       for (int i = 0; i < numIntersections; i++) {
@@ -211,15 +211,15 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
       }
     }
   }
-  
+
   private void assertTermsSeeking(Terms leftTerms, Terms rightTerms) throws Exception {
     TermsEnum leftEnum = null;
     TermsEnum rightEnum = null;
-    
+
     // just an upper bound
     int numTests = atLeast(20);
     Random random = random();
-    
+
     // collect this number of terms from the left side
     HashSet<BytesRef> tests = new HashSet<>();
     int numPasses = 0;
@@ -247,27 +247,27 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
       }
       numPasses++;
     }
-    
+
     ArrayList<BytesRef> shuffledTests = new ArrayList<>(tests);
     Collections.shuffle(shuffledTests, random);
-    
+
     for (BytesRef b : shuffledTests) {
       leftEnum = leftTerms.iterator();
       rightEnum = rightTerms.iterator();
-      
+
       assertEquals(leftEnum.seekExact(b), rightEnum.seekExact(b));
       assertEquals(leftEnum.seekExact(b), rightEnum.seekExact(b));
-      
+
       SeekStatus leftStatus;
       SeekStatus rightStatus;
-      
+
       leftStatus = leftEnum.seekCeil(b);
       rightStatus = rightEnum.seekCeil(b);
       assertEquals(leftStatus, rightStatus);
       if (leftStatus != SeekStatus.END) {
         assertEquals(leftEnum.term(), rightEnum.term());
       }
-      
+
       leftStatus = leftEnum.seekCeil(b);
       rightStatus = rightEnum.seekCeil(b);
       assertEquals(leftStatus, rightStatus);
@@ -276,9 +276,9 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
       }
     }
   }
-  
-  /** 
-   * checks collection-level statistics on Terms 
+
+  /**
+   * checks collection-level statistics on Terms
    */
   public void assertTermsStatistics(Terms leftTerms, Terms rightTerms) throws Exception {
     if (leftTerms.getDocCount() != -1 && rightTerms.getDocCount() != -1) {
@@ -295,7 +295,7 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
     }
   }
 
-  /** 
+  /**
    * checks the terms enum sequentially
    * if deep is false, it does a 'shallow' test that doesnt go down to the docsenums
    */
@@ -305,7 +305,7 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
     PostingsEnum rightPositions = null;
     PostingsEnum leftDocs = null;
     PostingsEnum rightDocs = null;
-    
+
     while ((term = leftTermsEnum.next()) != null) {
       assertEquals(term, rightTermsEnum.next());
       assertTermStats(leftTermsEnum, rightTermsEnum);
@@ -342,7 +342,7 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
                                   leftPositions = leftTermsEnum.postings(leftPositions, PostingsEnum.POSITIONS),
                                   rightPositions = rightTermsEnum.postings(rightPositions, PostingsEnum.POSITIONS));
         }
-        
+
         // with freqs:
         assertDocsEnum(leftDocs = leftTermsEnum.postings(leftDocs),
             rightDocs = rightTermsEnum.postings(rightDocs));
@@ -352,19 +352,19 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
             rightDocs = rightTermsEnum.postings(rightDocs, PostingsEnum.NONE));
 
         // with freqs:
-        assertDocsSkipping(leftTermsEnum.docFreq(), 
+        assertDocsSkipping(leftTermsEnum.docFreq(),
             leftDocs = leftTermsEnum.postings(leftDocs),
             rightDocs = rightTermsEnum.postings(rightDocs));
 
         // w/o freqs:
-        assertDocsSkipping(leftTermsEnum.docFreq(), 
+        assertDocsSkipping(leftTermsEnum.docFreq(),
             leftDocs = leftTermsEnum.postings(leftDocs, PostingsEnum.NONE),
             rightDocs = rightTermsEnum.postings(rightDocs, PostingsEnum.NONE));
       }
     }
     assertNull(rightTermsEnum.next());
   }
-  
+
   /**
    * checks term-level statistics
    */
@@ -374,7 +374,7 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
       assertEquals(leftTermsEnum.totalTermFreq(), rightTermsEnum.totalTermFreq());
     }
   }
-  
+
   /**
    * checks docs + freqs + positions + payloads, sequentially
    */
@@ -395,7 +395,7 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
     }
     assertEquals(DocIdSetIterator.NO_MORE_DOCS, rightDocs.nextDoc());
   }
-  
+
   /**
    * checks docs + freqs, sequentially
    */
@@ -413,7 +413,7 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
     }
     assertEquals(DocIdSetIterator.NO_MORE_DOCS, rightDocs.nextDoc());
   }
-  
+
   /**
    * checks advancing docs
    */
@@ -437,14 +437,14 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
         docid = leftDocs.advance(skip);
         assertEquals(docid, rightDocs.advance(skip));
       }
-      
+
       if (docid == DocIdSetIterator.NO_MORE_DOCS) {
         return;
       }
       // we don't assert freqs, they are allowed to be different
     }
   }
-  
+
   /**
    * checks advancing docs + positions
    */
@@ -454,7 +454,7 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
       assertNull(rightDocs);
       return;
     }
-    
+
     int docid = -1;
     int averageGap = MAXDOC / (1+docFreq);
     int skipInterval = 16;
@@ -470,7 +470,7 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
         docid = leftDocs.advance(skip);
         assertEquals(docid, rightDocs.advance(skip));
       }
-      
+
       if (docid == DocIdSetIterator.NO_MORE_DOCS) {
         return;
       }
@@ -482,19 +482,19 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
       }
     }
   }
-  
+
   private static class RandomBits implements Bits {
     FixedBitSet bits;
-    
+
     RandomBits(int maxDoc, double pctLive, Random random) {
       bits = new FixedBitSet(maxDoc);
       for (int i = 0; i < maxDoc; i++) {
-        if (random.nextDouble() <= pctLive) {        
+        if (random.nextDouble() <= pctLive) {
           bits.set(i);
         }
       }
     }
-    
+
     @Override
     public boolean get(int index) {
       return bits.get(index);

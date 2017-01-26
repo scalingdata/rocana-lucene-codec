@@ -38,10 +38,10 @@ import org.slf4j.LoggerFactory;
  * If you have access to Rocana's JIRA, see ROCANA-8229.
  *
  * The idea behind this:
- * 
+ *
  * Ultimately we're trying to comment out one line of code in
  * {@link RocanaBlockTreeTermsReader}'s constructor.
- * 
+ *
  * We don't want to customize Lucene's on-disk format. We just want
  * to stop Lucene from checksumming an entire file when there's no
  * benefit. The Lucene checksum is redundant since we store indexes
@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  * which may happen during a rebalance, and we'd rather eliminate
  * that penalty altogether or at least delay it until the rebalance
  * finishes.
- * 
+ *
  * To accomplish that we register this class as our Lucene codec,
  * which happens in rocana-search, when it calls:
  * {@link org.apache.lucene.index.IndexWriterConfig#setCodec(Codec)}.
@@ -122,7 +122,7 @@ public class RocanaSearchCodecV1 extends FilterCodec {
    * the code that checksums the entire file. To do that we
    * have to return a custom postings format here, which
    * acts exactly like Lucene's postings format except it
-   * returns {@link RocanaBlockTreeTermsReader}. 
+   * returns {@link RocanaBlockTreeTermsReader}.
    */
   @Override
   public PostingsFormat postingsFormat() {

@@ -58,7 +58,7 @@ public class TestBlockPostingsFormat extends BasePostingsFormatTestCase {
   protected Codec getCodec() {
     return codec;
   }
-  
+
   /** Make sure the final sub-block(s) are not skipped. */
   public void testFinalBlock() throws Exception {
     Directory d = newDirectory();

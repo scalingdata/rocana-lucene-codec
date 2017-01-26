@@ -159,7 +159,7 @@ final class RocanaSegmentTermsEnumFrame {
   /* Does initial decode of next block of terms; this
      doesn't actually decode the docFreq, totalTermFreq,
      postings details (frq/prx offset, etc.) metadata;
-     it just loads them as byte[] blobs which are then      
+     it just loads them as byte[] blobs which are then
      decoded on-demand if the metadata is ever requested
      for any term in this block.  This enables terms-only
      intensive consumes (eg certain MTQs, respelling) to
@@ -323,7 +323,7 @@ final class RocanaSegmentTermsEnumFrame {
           continue;
         }
       }
-        
+
       assert nextEnt != -1 && nextEnt < entCount: "nextEnt=" + nextEnt + " entCount=" + entCount + " fp=" + fp;
       nextEnt++;
       final int code = suffixesReader.readVInt();
@@ -382,7 +382,7 @@ final class RocanaSegmentTermsEnumFrame {
       }
     }
   }
-        
+
   // TODO: make this array'd so we can do bin search?
   // likely not worth it?  need to measure how many
   // floor blocks we "typically" get
@@ -418,7 +418,7 @@ final class RocanaSegmentTermsEnumFrame {
       // if (DEBUG) {
       //   System.out.println("      label=" + toHex(nextFloorLabel) + " fp=" + newFP + " hasTerms?=" + hasTerms + " numFollowFloor=" + numFollowFloorBlocks);
       // }
-            
+
       isLastInFloor = numFollowFloorBlocks == 1;
       numFollowFloorBlocks--;
 
@@ -452,7 +452,7 @@ final class RocanaSegmentTermsEnumFrame {
       // }
     }
   }
-    
+
   public void decodeMetaData() throws IOException {
 
     //if (DEBUG) System.out.println("\nBTTR.decodeMetadata seg=" + segment + " mdUpto=" + metaDataUpto + " vs termBlockOrd=" + state.termBlockOrd);
@@ -481,7 +481,7 @@ final class RocanaSegmentTermsEnumFrame {
         state.totalTermFreq = state.docFreq + statsReader.readVLong();
         //if (DEBUG) System.out.println("    totTF=" + state.totalTermFreq);
       }
-      // metadata 
+      // metadata
       for (int i = 0; i < ste.fr.longsSize; i++) {
         longs[i] = bytesReader.readVLong();
       }
@@ -799,7 +799,7 @@ final class RocanaSegmentTermsEnumFrame {
 
           if (!exactOnly && !ste.termExists) {
             //System.out.println("  now pushFrame");
-            // TODO this 
+            // TODO this
             // We are on a sub-block, and caller wants
             // us to position to the next term after
             // the target, so we must recurse into the
@@ -811,7 +811,7 @@ final class RocanaSegmentTermsEnumFrame {
               ste.currentFrame.loadBlock();
             }
           }
-                
+
           //if (DEBUG) System.out.println("        not found");
           return SeekStatus.NOT_FOUND;
         } else if (stop) {
