@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.lucene50;
+package com.rocana.lucene.codec.v1;
 
 
 import java.util.ArrayList;
@@ -56,12 +56,30 @@ import org.apache.lucene.util.automaton.AutomatonTestUtil;
 import org.apache.lucene.util.automaton.CompiledAutomaton;
 import org.apache.lucene.util.automaton.RegExp;
 
-/** 
- * Tests partial enumeration (only pulling a subset of the indexed data) 
+/**
+ * Fork of Lucene's {@link org.apache.lucene.codecs.lucene50.TestBlockPostingsFormat3}
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
+ *
+ * Why we forked:
+ *   - To use existing Lucene tests to test our {@link RocanaLucene50PostingsFormat}.
+ *
+ * What changed in the fork?
+ *   - Use {@link RocanaLucene50PostingsFormat} instead of Lucene's original.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *
+ * To see a full diff of changes in our fork: compare this version to the very first
+ * commit in git history. That first commit is the exact file from Lucene with no
+ * modifications.
+ *
+ * @see RocanaSearchCodecV1
+ *
+ * Original Lucene documentation:
+ * Tests partial enumeration (only pulling a subset of the indexed data)
  */
 public class TestBlockPostingsFormat3 extends LuceneTestCase {
-  private final int MAXDOC = TEST_NIGHTLY ? Lucene50PostingsFormat.BLOCK_SIZE * 20 
-                                          : Lucene50PostingsFormat.BLOCK_SIZE * 3;
+  private final int MAXDOC = TEST_NIGHTLY ? RocanaLucene50PostingsFormat.BLOCK_SIZE * 20 
+                                          : RocanaLucene50PostingsFormat.BLOCK_SIZE * 3;
   
   // creates 8 fields with different options and does "duels" of fields against each other
   public void test() throws Exception {
@@ -82,7 +100,7 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
       }
     };
     IndexWriterConfig iwc = newIndexWriterConfig(analyzer);
-    iwc.setCodec(TestUtil.alwaysPostingsFormat(new Lucene50PostingsFormat()));
+    iwc.setCodec(TestUtil.alwaysPostingsFormat(new RocanaLucene50PostingsFormat()));
     // TODO we could actually add more fields implemented with different PFs
     // or, just put this test into the usual rotation?
     RandomIndexWriter iw = new RandomIndexWriter(random(), dir, iwc);
@@ -137,7 +155,7 @@ public class TestBlockPostingsFormat3 extends LuceneTestCase {
     verify(dir);
     TestUtil.checkIndex(dir); // for some extra coverage, checkIndex before we forceMerge
     iwc = newIndexWriterConfig(analyzer);
-    iwc.setCodec(TestUtil.alwaysPostingsFormat(new Lucene50PostingsFormat()));
+    iwc.setCodec(TestUtil.alwaysPostingsFormat(new RocanaLucene50PostingsFormat()));
     iwc.setOpenMode(OpenMode.APPEND);
     IndexWriter iw2 = new IndexWriter(dir, iwc);
     iw2.forceMerge(1);

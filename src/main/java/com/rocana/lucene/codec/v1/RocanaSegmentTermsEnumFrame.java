@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.blocktree;
+package com.rocana.lucene.codec.v1;
 
 
 import java.io.IOException;
@@ -27,7 +27,32 @@ import org.apache.lucene.util.ArrayUtil;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.fst.FST;
 
-final class SegmentTermsEnumFrame {
+/**
+ * Fork of Lucene's {@link org.apache.lucene.codecs.blocktree.SegmentTermsEnumFrame}
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
+ *
+ * Why we forked:
+ *   - To use the other forked classes, like {@link RocanaSegmentTermsEnum}.
+ *
+ * What changed in the fork?
+ *   - Use the other forked classes.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *
+ * This is one of the forked classes where no logic changed, but to get
+ * the fork to compile we had to fork this class too. That happened with
+ * several classes because they had a hard reference to another class we
+ * forked. Ideally, our forked classes would extend the original Lucene
+ * class and override just the methods we need to change. Unfortunately
+ * in most cases that wasn't an option because many Lucene classes are final.
+ *
+ * To see a full diff of changes in our fork: compare this version to the very first
+ * commit in git history. That first commit is the exact file from Lucene with no
+ * modifications.
+ *
+ * @see RocanaSearchCodecV1
+ */
+final class RocanaSegmentTermsEnumFrame {
   // Our index in stack[]:
   final int ord;
 
@@ -92,9 +117,9 @@ final class SegmentTermsEnumFrame {
   byte[] bytes = new byte[32];
   final ByteArrayDataInput bytesReader = new ByteArrayDataInput();
 
-  private final SegmentTermsEnum ste;
+  private final RocanaSegmentTermsEnum ste;
 
-  public SegmentTermsEnumFrame(SegmentTermsEnum ste, int ord) throws IOException {
+  public RocanaSegmentTermsEnumFrame(RocanaSegmentTermsEnum ste, int ord) throws IOException {
     this.ste = ste;
     this.ord = ord;
     this.state = ste.fr.parent.postingsReader.newTermState();

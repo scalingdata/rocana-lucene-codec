@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.blocktree;
+package com.rocana.lucene.codec.v1;
 
 
 import java.io.ByteArrayOutputStream;
@@ -28,11 +28,40 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.IOUtils;
 
 /**
+ * Fork of Lucene's {@link org.apache.lucene.codecs.blocktree.Stats}
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
+ *
+ * Why we forked:
+ *   - To use the other forked classes, like {@link RocanaSegmentTermsEnumFrame}.
+ *
+ * What changed in the fork?
+ *   - Use the other forked classes.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *
+ * This is one of the forked classes where no logic changed, but to get
+ * the fork to compile we had to fork this class too. That happened with
+ * several classes because they had a hard reference to another class we
+ * forked. Ideally, our forked classes would extend the original Lucene
+ * class and override just the methods we need to change.
+ *
+ * Unfortunately in this particular case, the methods we need to customize
+ * reference a private field and, as this class might be on a critical
+ * performance path, we don't want to pay the performance price of using
+ * reflection to access that private field.
+ *
+ * To see a full diff of changes in our fork: compare this version to the very first
+ * commit in git history. That first commit is the exact file from Lucene with no
+ * modifications.
+ *
+ * @see RocanaSearchCodecV1
+ * 
+ * Original Lucene documentation:
  * BlockTree statistics for a single field 
  * returned by {@link FieldReader#getStats()}.
  * @lucene.internal
  */
-public class Stats {
+public class RocanaStats {
   /** Byte size of the index. */
   public long indexNumBytes;
 
@@ -92,12 +121,12 @@ public class Stats {
   /** Field name. */
   public final String field;
 
-  Stats(String segment, String field) {
+  RocanaStats(String segment, String field) {
     this.segment = segment;
     this.field = field;
   }
 
-  void startBlock(SegmentTermsEnumFrame frame, boolean isFloor) {
+  void startBlock(RocanaSegmentTermsEnumFrame frame, boolean isFloor) {
     totalBlockCount++;
     if (isFloor) {
       if (frame.fp == frame.fpOrig) {
@@ -117,7 +146,7 @@ public class Stats {
     totalBlockStatsBytes += frame.statsReader.length();
   }
 
-  void endBlock(SegmentTermsEnumFrame frame) {
+  void endBlock(RocanaSegmentTermsEnumFrame frame) {
     final int termCount = frame.isLeafBlock ? frame.entCount : frame.state.termBlockOrd;
     final int subBlockCount = frame.entCount - termCount;
     totalTermCount += termCount;

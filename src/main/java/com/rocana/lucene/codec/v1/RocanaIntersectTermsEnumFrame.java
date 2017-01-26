@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.blocktree;
+package com.rocana.lucene.codec.v1;
 
 
 import java.io.IOException;
@@ -27,15 +27,40 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.automaton.Transition;
 import org.apache.lucene.util.fst.FST;
 
+/**
+ * Fork of Lucene's {@link org.apache.lucene.codecs.blocktree.IntersectTermsEnumFrame}
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
+ *
+ * Why we forked:
+ *   - To use other forked classes, like {@link RocanaIntersectTermsEnum}.
+ *
+ * What changed in the fork?
+ *   - Use the other forked classes.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *
+ * This is one of the forked classes where no logic changed, but to get
+ * the fork to compile we had to fork this class too. That happened with
+ * several classes because they had a hard reference to another class we
+ * forked. Ideally, our forked classes would extend the original Lucene
+ * class and override just the methods we need to change. Unfortunately
+ * in most cases that wasn't an option because many Lucene classes are final.
+ *
+ * To see a full diff of changes in our fork: compare this version to the very first
+ * commit in git history. That first commit is the exact file from Lucene with no
+ * modifications.
+ *
+ * @see RocanaSearchCodecV1
+ */
 // TODO: can we share this with the frame in STE?
-final class IntersectTermsEnumFrame {
+final class RocanaIntersectTermsEnumFrame {
   final int ord;
   long fp;
   long fpOrig;
   long fpEnd;
   long lastSubFP;
 
-  // private static boolean DEBUG = IntersectTermsEnum.DEBUG;
+  // private static boolean DEBUG = RocanaIntersectTermsEnum.DEBUG;
 
   // State in automaton
   int state;
@@ -108,9 +133,9 @@ final class IntersectTermsEnumFrame {
   // True if the term we are currently on is an auto-prefix term:
   boolean isAutoPrefixTerm;
 
-  private final IntersectTermsEnum ite;
+  private final RocanaIntersectTermsEnum ite;
 
-  public IntersectTermsEnumFrame(IntersectTermsEnum ite, int ord) throws IOException {
+  public RocanaIntersectTermsEnumFrame(RocanaIntersectTermsEnum ite, int ord) throws IOException {
     this.ite = ite;
     this.ord = ord;
     this.termState = ite.fr.parent.postingsReader.newTermState();
@@ -158,7 +183,7 @@ final class IntersectTermsEnumFrame {
       // Skip first long -- has redundant fp, hasTerms
       // flag, isFloor flag
       final long code = floorDataReader.readVLong();
-      if ((code & BlockTreeTermsReader.OUTPUT_FLAG_IS_FLOOR) != 0) {
+      if ((code & RocanaBlockTreeTermsReader.OUTPUT_FLAG_IS_FLOOR) != 0) {
         // Floor frame
         numFollowFloorBlocks = floorDataReader.readVInt();
         nextFloorLabel = floorDataReader.readByte() & 0xff;
@@ -296,7 +321,7 @@ final class IntersectTermsEnumFrame {
           // TODO: this is messy, but necessary because we are an auto-prefix term, but our suffix is the empty string here, so we have to
           // look at the parent block to get the lead suffix byte:
           assert ord > 0;
-          IntersectTermsEnumFrame parent = ite.stack[ord-1];
+          RocanaIntersectTermsEnumFrame parent = ite.stack[ord-1];
           floorSuffixLeadStart = parent.suffixBytes[parent.startBytePos+parent.suffix-1] & 0xff;
         } else {
           floorSuffixLeadStart = suffixBytes[startBytePos+suffix-1] & 0xff;

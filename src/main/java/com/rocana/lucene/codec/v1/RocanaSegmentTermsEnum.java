@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.blocktree;
+package com.rocana.lucene.codec.v1;
 
 
 import java.io.IOException;
@@ -33,19 +33,45 @@ import org.apache.lucene.util.RamUsageEstimator;
 import org.apache.lucene.util.fst.FST;
 import org.apache.lucene.util.fst.Util;
 
-/** Iterates through terms in this field.  This implementation skips
+/**
+ * Fork of Lucene's {@link org.apache.lucene.codecs.blocktree.SegmentTermsEnum}
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
+ *
+ * Why we forked:
+ *   - To use the other forked classes, like {@link RocanaFieldReader}.
+ *
+ * What changed in the fork?
+ *   - Use the other forked classes.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *
+ * This is one of the forked classes where no logic changed, but to get
+ * the fork to compile we had to fork this class too. That happened with
+ * several classes because they had a hard reference to another class we
+ * forked. Ideally, our forked classes would extend the original Lucene
+ * class and override just the methods we need to change. Unfortunately
+ * in most cases that wasn't an option because many Lucene classes are final.
+ *
+ * To see a full diff of changes in our fork: compare this version to the very first
+ * commit in git history. That first commit is the exact file from Lucene with no
+ * modifications.
+ *
+ * @see RocanaSearchCodecV1
+ * 
+ * Original Lucene documentation:
+ *  Iterates through terms in this field.  This implementation skips
  *  any auto-prefix terms it encounters. */
 
-final class SegmentTermsEnum extends TermsEnum {
+final class RocanaSegmentTermsEnum extends TermsEnum {
 
   // Lazy init:
   IndexInput in;
 
-  private SegmentTermsEnumFrame[] stack;
-  private final SegmentTermsEnumFrame staticFrame;
-  SegmentTermsEnumFrame currentFrame;
+  private RocanaSegmentTermsEnumFrame[] stack;
+  private final RocanaSegmentTermsEnumFrame staticFrame;
+  RocanaSegmentTermsEnumFrame currentFrame;
   boolean termExists;
-  final FieldReader fr;
+  final RocanaFieldReader fr;
 
   private int targetBeforeCurrentLength;
 
@@ -65,16 +91,16 @@ final class SegmentTermsEnum extends TermsEnum {
 
   @SuppressWarnings({"rawtypes","unchecked"}) private FST.Arc<BytesRef>[] arcs = new FST.Arc[1];
 
-  public SegmentTermsEnum(FieldReader fr) throws IOException {
+  public RocanaSegmentTermsEnum(RocanaFieldReader fr) throws IOException {
     this.fr = fr;
 
     // if (DEBUG) {
     //   System.out.println("BTTR.init seg=" + fr.parent.segment);
     // }
-    stack = new SegmentTermsEnumFrame[0];
+    stack = new RocanaSegmentTermsEnumFrame[0];
         
     // Used to hold seek by TermState, or cached seek
-    staticFrame = new SegmentTermsEnumFrame(this, -1);
+    staticFrame = new RocanaSegmentTermsEnumFrame(this, -1);
 
     if (fr.index == null) {
       fstReader = null;
@@ -118,11 +144,11 @@ final class SegmentTermsEnum extends TermsEnum {
 
   /** Runs next() through the entire terms dict,
    *  computing aggregate statistics. */
-  public Stats computeBlockStats() throws IOException {
+  public RocanaStats computeBlockStats() throws IOException {
 
     // TODO: add total auto-prefix term count
 
-    Stats stats = new Stats(fr.parent.segment, fr.fieldInfo.name);
+    RocanaStats stats = new RocanaStats(fr.parent.segment, fr.fieldInfo.name);
     if (fr.index != null) {
       stats.indexNumBytes = fr.index.ramBytesUsed();
     }
@@ -207,12 +233,12 @@ final class SegmentTermsEnum extends TermsEnum {
     return stats;
   }
 
-  private SegmentTermsEnumFrame getFrame(int ord) throws IOException {
+  private RocanaSegmentTermsEnumFrame getFrame(int ord) throws IOException {
     if (ord >= stack.length) {
-      final SegmentTermsEnumFrame[] next = new SegmentTermsEnumFrame[ArrayUtil.oversize(1+ord, RamUsageEstimator.NUM_BYTES_OBJECT_REF)];
+      final RocanaSegmentTermsEnumFrame[] next = new RocanaSegmentTermsEnumFrame[ArrayUtil.oversize(1+ord, RamUsageEstimator.NUM_BYTES_OBJECT_REF)];
       System.arraycopy(stack, 0, next, 0, stack.length);
       for(int stackOrd=stack.length;stackOrd<next.length;stackOrd++) {
-        next[stackOrd] = new SegmentTermsEnumFrame(this, stackOrd);
+        next[stackOrd] = new RocanaSegmentTermsEnumFrame(this, stackOrd);
       }
       stack = next;
     }
@@ -234,14 +260,14 @@ final class SegmentTermsEnum extends TermsEnum {
   }
 
   // Pushes a frame we seek'd to
-  SegmentTermsEnumFrame pushFrame(FST.Arc<BytesRef> arc, BytesRef frameData, int length) throws IOException {
+  RocanaSegmentTermsEnumFrame pushFrame(FST.Arc<BytesRef> arc, BytesRef frameData, int length) throws IOException {
     scratchReader.reset(frameData.bytes, frameData.offset, frameData.length);
     final long code = scratchReader.readVLong();
-    final long fpSeek = code >>> BlockTreeTermsReader.OUTPUT_FLAGS_NUM_BITS;
-    final SegmentTermsEnumFrame f = getFrame(1+currentFrame.ord);
-    f.hasTerms = (code & BlockTreeTermsReader.OUTPUT_FLAG_HAS_TERMS) != 0;
+    final long fpSeek = code >>> RocanaBlockTreeTermsReader.OUTPUT_FLAGS_NUM_BITS;
+    final RocanaSegmentTermsEnumFrame f = getFrame(1+currentFrame.ord);
+    f.hasTerms = (code & RocanaBlockTreeTermsReader.OUTPUT_FLAG_HAS_TERMS) != 0;
     f.hasTermsOrig = f.hasTerms;
-    f.isFloor = (code & BlockTreeTermsReader.OUTPUT_FLAG_IS_FLOOR) != 0;
+    f.isFloor = (code & RocanaBlockTreeTermsReader.OUTPUT_FLAG_IS_FLOOR) != 0;
     if (f.isFloor) {
       f.setFloorData(scratchReader, frameData);
     }
@@ -252,8 +278,8 @@ final class SegmentTermsEnum extends TermsEnum {
 
   // Pushes next'd frame or seek'd frame; we later
   // lazy-load the frame only when needed
-  SegmentTermsEnumFrame pushFrame(FST.Arc<BytesRef> arc, long fp, int length) throws IOException {
-    final SegmentTermsEnumFrame f = getFrame(1+currentFrame.ord);
+  RocanaSegmentTermsEnumFrame pushFrame(FST.Arc<BytesRef> arc, long fp, int length) throws IOException {
+    final RocanaSegmentTermsEnumFrame f = getFrame(1+currentFrame.ord);
     f.arc = arc;
     if (f.fpOrig == fp && f.nextEnt != -1) {
       //if (DEBUG) System.out.println("      push reused frame ord=" + f.ord + " fp=" + f.fp + " isFloor?=" + f.isFloor + " hasTerms=" + f.hasTerms + " pref=" + term + " nextEnt=" + f.nextEnt + " targetBeforeCurrentLength=" + targetBeforeCurrentLength + " term.length=" + term.length + " vs prefix=" + f.prefix);
@@ -356,7 +382,7 @@ final class SegmentTermsEnum extends TermsEnum {
       output = arc.output;
       targetUpto = 0;
           
-      SegmentTermsEnumFrame lastFrame = stack[0];
+      RocanaSegmentTermsEnumFrame lastFrame = stack[0];
       assert validIndexPrefix <= term.length();
 
       final int targetLimit = Math.min(target.length, validIndexPrefix);
@@ -377,8 +403,8 @@ final class SegmentTermsEnum extends TermsEnum {
         }
         arc = arcs[1+targetUpto];
         assert arc.label == (target.bytes[target.offset + targetUpto] & 0xFF): "arc.label=" + (char) arc.label + " targetLabel=" + (char) (target.bytes[target.offset + targetUpto] & 0xFF);
-        if (arc.output != BlockTreeTermsReader.NO_OUTPUT) {
-          output = BlockTreeTermsReader.FST_OUTPUTS.add(output, arc.output);
+        if (arc.output != RocanaBlockTreeTermsReader.NO_OUTPUT) {
+          output = RocanaBlockTreeTermsReader.FST_OUTPUTS.add(output, arc.output);
         }
         if (arc.isFinal()) {
           lastFrame = stack[1+lastFrame.ord];
@@ -468,7 +494,7 @@ final class SegmentTermsEnum extends TermsEnum {
 
       //term.length = 0;
       targetUpto = 0;
-      currentFrame = pushFrame(arc, BlockTreeTermsReader.FST_OUTPUTS.add(output, arc.nextFinalOutput), 0);
+      currentFrame = pushFrame(arc, RocanaBlockTreeTermsReader.FST_OUTPUTS.add(output, arc.nextFinalOutput), 0);
     }
 
     // if (DEBUG) {
@@ -524,8 +550,8 @@ final class SegmentTermsEnum extends TermsEnum {
         term.setByteAt(targetUpto, (byte) targetLabel);
         // Aggregate output as we go:
         assert arc.output != null;
-        if (arc.output != BlockTreeTermsReader.NO_OUTPUT) {
-          output = BlockTreeTermsReader.FST_OUTPUTS.add(output, arc.output);
+        if (arc.output != RocanaBlockTreeTermsReader.NO_OUTPUT) {
+          output = RocanaBlockTreeTermsReader.FST_OUTPUTS.add(output, arc.output);
         }
 
         // if (DEBUG) {
@@ -535,7 +561,7 @@ final class SegmentTermsEnum extends TermsEnum {
 
         if (arc.isFinal()) {
           //if (DEBUG) System.out.println("    arc is final!");
-          currentFrame = pushFrame(arc, BlockTreeTermsReader.FST_OUTPUTS.add(output, arc.nextFinalOutput), targetUpto);
+          currentFrame = pushFrame(arc, RocanaBlockTreeTermsReader.FST_OUTPUTS.add(output, arc.nextFinalOutput), targetUpto);
           //if (DEBUG) System.out.println("    curFrame.ord=" + currentFrame.ord + " hasTerms=" + currentFrame.hasTerms);
         }
       }
@@ -613,7 +639,7 @@ final class SegmentTermsEnum extends TermsEnum {
       output = arc.output;
       targetUpto = 0;
           
-      SegmentTermsEnumFrame lastFrame = stack[0];
+      RocanaSegmentTermsEnumFrame lastFrame = stack[0];
       assert validIndexPrefix <= term.length();
 
       final int targetLimit = Math.min(target.length, validIndexPrefix);
@@ -639,8 +665,8 @@ final class SegmentTermsEnum extends TermsEnum {
         // seek; but, often the FST doesn't have any
         // shared bytes (but this could change if we
         // reverse vLong byte order)
-        if (arc.output != BlockTreeTermsReader.NO_OUTPUT) {
-          output = BlockTreeTermsReader.FST_OUTPUTS.add(output, arc.output);
+        if (arc.output != RocanaBlockTreeTermsReader.NO_OUTPUT) {
+          output = RocanaBlockTreeTermsReader.FST_OUTPUTS.add(output, arc.output);
         }
         if (arc.isFinal()) {
           lastFrame = stack[1+lastFrame.ord];
@@ -725,7 +751,7 @@ final class SegmentTermsEnum extends TermsEnum {
 
       //term.length = 0;
       targetUpto = 0;
-      currentFrame = pushFrame(arc, BlockTreeTermsReader.FST_OUTPUTS.add(output, arc.nextFinalOutput), 0);
+      currentFrame = pushFrame(arc, RocanaBlockTreeTermsReader.FST_OUTPUTS.add(output, arc.nextFinalOutput), 0);
     }
 
     //if (DEBUG) {
@@ -782,8 +808,8 @@ final class SegmentTermsEnum extends TermsEnum {
         arc = nextArc;
         // Aggregate output as we go:
         assert arc.output != null;
-        if (arc.output != BlockTreeTermsReader.NO_OUTPUT) {
-          output = BlockTreeTermsReader.FST_OUTPUTS.add(output, arc.output);
+        if (arc.output != RocanaBlockTreeTermsReader.NO_OUTPUT) {
+          output = RocanaBlockTreeTermsReader.FST_OUTPUTS.add(output, arc.output);
         }
 
         //if (DEBUG) {
@@ -793,7 +819,7 @@ final class SegmentTermsEnum extends TermsEnum {
 
         if (arc.isFinal()) {
           //if (DEBUG) System.out.println("    arc is final!");
-          currentFrame = pushFrame(arc, BlockTreeTermsReader.FST_OUTPUTS.add(output, arc.nextFinalOutput), targetUpto);
+          currentFrame = pushFrame(arc, RocanaBlockTreeTermsReader.FST_OUTPUTS.add(output, arc.nextFinalOutput), targetUpto);
           //if (DEBUG) System.out.println("    curFrame.ord=" + currentFrame.ord + " hasTerms=" + currentFrame.hasTerms);
         }
       }
@@ -836,13 +862,13 @@ final class SegmentTermsEnum extends TermsEnum {
       int ord = 0;
       boolean isSeekFrame = true;
       while(true) {
-        SegmentTermsEnumFrame f = getFrame(ord);
+        RocanaSegmentTermsEnumFrame f = getFrame(ord);
         assert f != null;
         final BytesRef prefix = new BytesRef(term.get().bytes, 0, f.prefix);
         if (f.nextEnt == -1) {
-          out.println("    frame " + (isSeekFrame ? "(seek)" : "(next)") + " ord=" + ord + " fp=" + f.fp + (f.isFloor ? (" (fpOrig=" + f.fpOrig + ")") : "") + " prefixLen=" + f.prefix + " prefix=" + prefix + (f.nextEnt == -1 ? "" : (" (of " + f.entCount + ")")) + " hasTerms=" + f.hasTerms + " isFloor=" + f.isFloor + " code=" + ((f.fp<< BlockTreeTermsReader.OUTPUT_FLAGS_NUM_BITS) + (f.hasTerms ? BlockTreeTermsReader.OUTPUT_FLAG_HAS_TERMS:0) + (f.isFloor ? BlockTreeTermsReader.OUTPUT_FLAG_IS_FLOOR:0)) + " isLastInFloor=" + f.isLastInFloor + " mdUpto=" + f.metaDataUpto + " tbOrd=" + f.getTermBlockOrd());
+          out.println("    frame " + (isSeekFrame ? "(seek)" : "(next)") + " ord=" + ord + " fp=" + f.fp + (f.isFloor ? (" (fpOrig=" + f.fpOrig + ")") : "") + " prefixLen=" + f.prefix + " prefix=" + prefix + (f.nextEnt == -1 ? "" : (" (of " + f.entCount + ")")) + " hasTerms=" + f.hasTerms + " isFloor=" + f.isFloor + " code=" + ((f.fp<< RocanaBlockTreeTermsReader.OUTPUT_FLAGS_NUM_BITS) + (f.hasTerms ? RocanaBlockTreeTermsReader.OUTPUT_FLAG_HAS_TERMS:0) + (f.isFloor ? RocanaBlockTreeTermsReader.OUTPUT_FLAG_IS_FLOOR:0)) + " isLastInFloor=" + f.isLastInFloor + " mdUpto=" + f.metaDataUpto + " tbOrd=" + f.getTermBlockOrd());
         } else {
-          out.println("    frame " + (isSeekFrame ? "(seek, loaded)" : "(next, loaded)") + " ord=" + ord + " fp=" + f.fp + (f.isFloor ? (" (fpOrig=" + f.fpOrig + ")") : "") + " prefixLen=" + f.prefix + " prefix=" + prefix + " nextEnt=" + f.nextEnt + (f.nextEnt == -1 ? "" : (" (of " + f.entCount + ")")) + " hasTerms=" + f.hasTerms + " isFloor=" + f.isFloor + " code=" + ((f.fp<< BlockTreeTermsReader.OUTPUT_FLAGS_NUM_BITS) + (f.hasTerms ? BlockTreeTermsReader.OUTPUT_FLAG_HAS_TERMS:0) + (f.isFloor ? BlockTreeTermsReader.OUTPUT_FLAG_IS_FLOOR:0)) + " lastSubFP=" + f.lastSubFP + " isLastInFloor=" + f.isLastInFloor + " mdUpto=" + f.metaDataUpto + " tbOrd=" + f.getTermBlockOrd());
+          out.println("    frame " + (isSeekFrame ? "(seek, loaded)" : "(next, loaded)") + " ord=" + ord + " fp=" + f.fp + (f.isFloor ? (" (fpOrig=" + f.fpOrig + ")") : "") + " prefixLen=" + f.prefix + " prefix=" + prefix + " nextEnt=" + f.nextEnt + (f.nextEnt == -1 ? "" : (" (of " + f.entCount + ")")) + " hasTerms=" + f.hasTerms + " isFloor=" + f.isFloor + " code=" + ((f.fp<< RocanaBlockTreeTermsReader.OUTPUT_FLAGS_NUM_BITS) + (f.hasTerms ? RocanaBlockTreeTermsReader.OUTPUT_FLAG_HAS_TERMS:0) + (f.isFloor ? RocanaBlockTreeTermsReader.OUTPUT_FLAG_IS_FLOOR:0)) + " lastSubFP=" + f.lastSubFP + " isLastInFloor=" + f.isLastInFloor + " mdUpto=" + f.metaDataUpto + " tbOrd=" + f.getTermBlockOrd());
         }
         if (fr.index != null) {
           assert !isSeekFrame || f.arc != null: "isSeekFrame=" + isSeekFrame + " f.arc=" + f.arc;
@@ -857,7 +883,7 @@ final class SegmentTermsEnum extends TermsEnum {
           } else if (isSeekFrame && !f.isFloor) {
             final ByteArrayDataInput reader = new ByteArrayDataInput(output.bytes, output.offset, output.length);
             final long codeOrig = reader.readVLong();
-            final long code = (f.fp << BlockTreeTermsReader.OUTPUT_FLAGS_NUM_BITS) | (f.hasTerms ? BlockTreeTermsReader.OUTPUT_FLAG_HAS_TERMS:0) | (f.isFloor ? BlockTreeTermsReader.OUTPUT_FLAG_IS_FLOOR:0);
+            final long code = (f.fp << RocanaBlockTreeTermsReader.OUTPUT_FLAGS_NUM_BITS) | (f.hasTerms ? RocanaBlockTreeTermsReader.OUTPUT_FLAG_HAS_TERMS:0) | (f.isFloor ? RocanaBlockTreeTermsReader.OUTPUT_FLAG_IS_FLOOR:0);
             if (codeOrig != code) {
               out.println("      broken seek state: output code=" + codeOrig + " doesn't match frame code=" + code);
               throw new RuntimeException("seek state is broken");

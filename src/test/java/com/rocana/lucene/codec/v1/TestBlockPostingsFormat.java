@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.lucene50;
+package com.rocana.lucene.codec.v1;
 
 
 import org.apache.lucene.analysis.MockAnalyzer;
@@ -31,10 +31,28 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.TestUtil;
 
 /**
+ * Fork of Lucene's {@link org.apache.lucene.codecs.lucene50.TestBlockPostingsFormat}.
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
+ *
+ * Why we forked:
+ *   - To use existing Lucene tests to test our {@link RocanaLucene50PostingsFormat}
+ *
+ * What changed in the fork?
+ *   - Use {@link RocanaLucene50PostingsFormat} instead of Lucene's original.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *
+ * To see a full diff of changes in our fork: compare this version to the very first
+ * commit in git history. That first commit is the exact file from Lucene with no
+ * modifications.
+ *
+ * @see RocanaSearchCodecV1
+ *
+ * Original Lucene documentation:
  * Tests BlockPostingsFormat
  */
 public class TestBlockPostingsFormat extends BasePostingsFormatTestCase {
-  private final Codec codec = TestUtil.alwaysPostingsFormat(new Lucene50PostingsFormat());
+  private final Codec codec = TestUtil.alwaysPostingsFormat(new RocanaLucene50PostingsFormat());
 
   @Override
   protected Codec getCodec() {
@@ -67,7 +85,7 @@ public class TestBlockPostingsFormat extends BasePostingsFormatTestCase {
 
   private void shouldFail(int minItemsInBlock, int maxItemsInBlock) {
     try {
-      new Lucene50PostingsFormat(minItemsInBlock, maxItemsInBlock);
+      new RocanaLucene50PostingsFormat(minItemsInBlock, maxItemsInBlock);
       fail("did not hit exception");
     } catch (IllegalArgumentException iae) {
       // expected

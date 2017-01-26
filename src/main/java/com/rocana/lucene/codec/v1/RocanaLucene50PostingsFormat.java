@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.lucene50;
+package com.rocana.lucene.codec.v1;
 
 
 
@@ -28,8 +28,9 @@ import org.apache.lucene.codecs.MultiLevelSkipListWriter;
 import org.apache.lucene.codecs.PostingsFormat;
 import org.apache.lucene.codecs.PostingsReaderBase;
 import org.apache.lucene.codecs.PostingsWriterBase;
-import org.apache.lucene.codecs.blocktree.BlockTreeTermsReader;
 import org.apache.lucene.codecs.blocktree.BlockTreeTermsWriter;
+import org.apache.lucene.codecs.lucene50.Lucene50PostingsReader;
+import org.apache.lucene.codecs.lucene50.Lucene50PostingsWriter;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.SegmentReadState;
@@ -40,6 +41,26 @@ import org.apache.lucene.util.IOUtils;
 import org.apache.lucene.util.packed.PackedInts;
 
 /**
+ * Fork of Lucene's {@link org.apache.lucene.codecs.lucene50.Lucene50PostingsFormat}
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
+ *
+ * Why we forked:
+ *   - We need to 'hook in' {@link RocanaBlockTreeTermsReader}, which has the performance
+ *     improvement.
+ *
+ * What changed in the fork?
+ *   - {@link #fieldsProducer(SegmentReadState)} returns a fork: {@link RocanaBlockTreeTermsReader}
+ *     rather than the normal Lucene class.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *
+ * To see a full diff of changes in our fork: compare this version to the very first
+ * commit in git history. That first commit is the exact file from Lucene with no
+ * modifications.
+ *
+ * @see RocanaSearchCodecV1
+ *
+ * Original Lucene documentation:
  * Lucene 5.0 postings format, which encodes postings in packed integer blocks 
  * for fast decode.
  *
@@ -353,7 +374,7 @@ import org.apache.lucene.util.packed.PackedInts;
  * @lucene.experimental
  */
 
-public final class Lucene50PostingsFormat extends PostingsFormat {
+public final class RocanaLucene50PostingsFormat extends PostingsFormat {
   /**
    * Filename extension for document number, frequencies, and skip data.
    * See chapter: <a href="#Frequencies">Frequencies and Skip Data</a>
@@ -397,17 +418,17 @@ public final class Lucene50PostingsFormat extends PostingsFormat {
   // NOTE: must be multiple of 64 because of PackedInts long-aligned encoding/decoding
   public final static int BLOCK_SIZE = 128;
 
-  /** Creates {@code Lucene50PostingsFormat} with default
+  /** Creates {@code RocanaLucene50PostingsFormat} with default
    *  settings. */
-  public Lucene50PostingsFormat() {
+  public RocanaLucene50PostingsFormat() {
     this(BlockTreeTermsWriter.DEFAULT_MIN_BLOCK_SIZE, BlockTreeTermsWriter.DEFAULT_MAX_BLOCK_SIZE);
   }
 
-  /** Creates {@code Lucene50PostingsFormat} with custom
+  /** Creates {@code RocanaLucene50PostingsFormat} with custom
    *  values for {@code minBlockSize} and {@code
    *  maxBlockSize} passed to block terms dictionary.
    *  @see BlockTreeTermsWriter#BlockTreeTermsWriter(SegmentWriteState,PostingsWriterBase,int,int) */
-  public Lucene50PostingsFormat(int minTermBlockSize, int maxTermBlockSize) {
+  public RocanaLucene50PostingsFormat(int minTermBlockSize, int maxTermBlockSize) {
     super("Lucene50");
     BlockTreeTermsWriter.validateSettings(minTermBlockSize, maxTermBlockSize);
     this.minTermBlockSize = minTermBlockSize;
@@ -443,7 +464,7 @@ public final class Lucene50PostingsFormat extends PostingsFormat {
     PostingsReaderBase postingsReader = new Lucene50PostingsReader(state);
     boolean success = false;
     try {
-      FieldsProducer ret = new BlockTreeTermsReader(postingsReader, state);
+      FieldsProducer ret = new RocanaBlockTreeTermsReader(postingsReader, state);
       success = true;
       return ret;
     } finally {

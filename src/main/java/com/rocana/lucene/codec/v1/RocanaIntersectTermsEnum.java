@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.blocktree;
+package com.rocana.lucene.codec.v1;
 
 
 import java.io.IOException;
@@ -35,7 +35,33 @@ import org.apache.lucene.util.fst.ByteSequenceOutputs;
 import org.apache.lucene.util.fst.FST;
 import org.apache.lucene.util.fst.Outputs;
 
-/** This is used to implement efficient {@link Terms#intersect} for
+/**
+ * Fork of Lucene's {@link org.apache.lucene.codecs.blocktree.IntersectTermsEnum}
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
+ *
+ * Why we forked:
+ *   - To use other forked classes, like {@link RocanaFieldReader}.
+ *
+ * What changed in the fork?
+ *   - Use the other forked classes.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *
+ * This is one of the forked classes where no logic changed, but to get
+ * the fork to compile we had to fork this class too. That happened with
+ * several classes because they had a hard reference to another class we
+ * forked. Ideally, our forked classes would extend the original Lucene
+ * class and override just the methods we need to change. Unfortunately
+ * in most cases that wasn't an option because many Lucene classes are final.
+ *
+ * To see a full diff of changes in our fork: compare this version to the very first
+ * commit in git history. That first commit is the exact file from Lucene with no
+ * modifications.
+ *
+ * @see RocanaSearchCodecV1
+ * 
+ * Original Lucene documentation:
+ *  This is used to implement efficient {@link Terms#intersect} for
  *  block-tree.  Note that it cannot seek, except for the initial term on
  *  init.  It just "nexts" through the intersection of the automaton and
  *  the terms.  It does not use the terms index at all: on init, it
@@ -46,14 +72,14 @@ import org.apache.lucene.util.fst.Outputs;
  *  when possible and then skip the real terms that auto-prefix term
  *  matched. */
 
-final class IntersectTermsEnum extends TermsEnum {
+final class RocanaIntersectTermsEnum extends TermsEnum {
 
   //static boolean DEBUG = BlockTreeTermsWriter.DEBUG;
 
   final IndexInput in;
   final static Outputs<BytesRef> fstOutputs = ByteSequenceOutputs.getSingleton();
 
-  IntersectTermsEnumFrame[] stack;
+  RocanaIntersectTermsEnumFrame[] stack;
       
   @SuppressWarnings({"rawtypes","unchecked"}) private FST.Arc<BytesRef>[] arcs = new FST.Arc[5];
 
@@ -61,7 +87,7 @@ final class IntersectTermsEnum extends TermsEnum {
   final Automaton automaton;
   final BytesRef commonSuffix;
 
-  private IntersectTermsEnumFrame currentFrame;
+  private RocanaIntersectTermsEnumFrame currentFrame;
   private Transition currentTransition;
 
   private final BytesRef term = new BytesRef();
@@ -70,7 +96,7 @@ final class IntersectTermsEnum extends TermsEnum {
 
   private final boolean allowAutoPrefixTerms;
 
-  final FieldReader fr;
+  final RocanaFieldReader fr;
 
   /** Which state in the automaton accepts all possible suffixes. */
   private final int sinkState;
@@ -82,7 +108,7 @@ final class IntersectTermsEnum extends TermsEnum {
 
   // TODO: in some cases we can filter by length?  eg
   // regexp foo*bar must be at least length 6 bytes
-  public IntersectTermsEnum(FieldReader fr, Automaton automaton, RunAutomaton runAutomaton, BytesRef commonSuffix, BytesRef startTerm, int sinkState) throws IOException {
+  public RocanaIntersectTermsEnum(RocanaFieldReader fr, Automaton automaton, RunAutomaton runAutomaton, BytesRef commonSuffix, BytesRef startTerm, int sinkState) throws IOException {
     this.fr = fr;
     this.sinkState = sinkState;
 
@@ -95,9 +121,9 @@ final class IntersectTermsEnum extends TermsEnum {
     this.commonSuffix = commonSuffix;
 
     in = fr.parent.termsIn.clone();
-    stack = new IntersectTermsEnumFrame[5];
+    stack = new RocanaIntersectTermsEnumFrame[5];
     for(int idx=0;idx<stack.length;idx++) {
-      stack[idx] = new IntersectTermsEnumFrame(this, idx);
+      stack[idx] = new RocanaIntersectTermsEnumFrame(this, idx);
     }
     for(int arcIdx=0;arcIdx<arcs.length;arcIdx++) {
       arcs[arcIdx] = new FST.Arc<>();
@@ -121,7 +147,7 @@ final class IntersectTermsEnum extends TermsEnum {
     assert arc.isFinal();
 
     // Special pushFrame since it's the first one:
-    final IntersectTermsEnumFrame f = stack[0];
+    final RocanaIntersectTermsEnumFrame f = stack[0];
     f.fp = f.fpOrig = fr.rootBlockFP;
     f.prefix = 0;
     f.setState(runAutomaton.getInitialState());
@@ -151,12 +177,12 @@ final class IntersectTermsEnum extends TermsEnum {
     return currentFrame.termState.clone();
   }
 
-  private IntersectTermsEnumFrame getFrame(int ord) throws IOException {
+  private RocanaIntersectTermsEnumFrame getFrame(int ord) throws IOException {
     if (ord >= stack.length) {
-      final IntersectTermsEnumFrame[] next = new IntersectTermsEnumFrame[ArrayUtil.oversize(1+ord, RamUsageEstimator.NUM_BYTES_OBJECT_REF)];
+      final RocanaIntersectTermsEnumFrame[] next = new RocanaIntersectTermsEnumFrame[ArrayUtil.oversize(1+ord, RamUsageEstimator.NUM_BYTES_OBJECT_REF)];
       System.arraycopy(stack, 0, next, 0, stack.length);
       for(int stackOrd=stack.length;stackOrd<next.length;stackOrd++) {
-        next[stackOrd] = new IntersectTermsEnumFrame(this, stackOrd);
+        next[stackOrd] = new RocanaIntersectTermsEnumFrame(this, stackOrd);
       }
       stack = next;
     }
@@ -177,10 +203,10 @@ final class IntersectTermsEnum extends TermsEnum {
     return arcs[ord];
   }
 
-  private IntersectTermsEnumFrame pushFrame(int state) throws IOException {
+  private RocanaIntersectTermsEnumFrame pushFrame(int state) throws IOException {
     assert currentFrame != null;
 
-    final IntersectTermsEnumFrame f = getFrame(currentFrame == null ? 0 : 1+currentFrame.ord);
+    final RocanaIntersectTermsEnumFrame f = getFrame(currentFrame == null ? 0 : 1+currentFrame.ord);
         
     f.fp = f.fpOrig = currentFrame.lastSubFP;
     f.prefix = currentFrame.prefix + currentFrame.suffix;

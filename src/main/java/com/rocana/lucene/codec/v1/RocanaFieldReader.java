@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.blocktree;
+package com.rocana.lucene.codec.v1;
 
 
 import java.io.IOException;
@@ -36,15 +36,40 @@ import org.apache.lucene.util.fst.ByteSequenceOutputs;
 import org.apache.lucene.util.fst.FST;
 
 /**
+ * Fork of Lucene's {@link org.apache.lucene.codecs.blocktree.FieldReader}
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
+ *
+ * Why we forked:
+ *   - To use the other forked classes, like {@link RocanaBlockTreeTermsReader}.
+ *
+ * What changed in the fork?
+ *   - Use the other forked classes.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *
+ * This is one of the forked classes where no logic changed, but to get
+ * the fork to compile we had to fork this class too. That happened with
+ * several classes because they had a hard reference to another class we
+ * forked. Ideally, our forked classes would extend the original Lucene
+ * class and override just the methods we need to change. Unfortunately
+ * in most cases that wasn't an option because many Lucene classes are final.
+ *
+ * To see a full diff of changes in our fork: compare this version to the very first
+ * commit in git history. That first commit is the exact file from Lucene with no
+ * modifications.
+ *
+ * @see RocanaSearchCodecV1
+ * 
+ * Original Lucene documentation:
  * BlockTree's implementation of {@link Terms}.
  * @lucene.internal
  */
-public final class FieldReader extends Terms implements Accountable {
+public final class RocanaFieldReader extends Terms implements Accountable {
 
   // private final boolean DEBUG = BlockTreeTermsWriter.DEBUG;
 
   private static final long BASE_RAM_BYTES_USED =
-      RamUsageEstimator.shallowSizeOfInstance(FieldReader.class)
+      RamUsageEstimator.shallowSizeOfInstance(RocanaFieldReader.class)
       + 3 * RamUsageEstimator.shallowSizeOfInstance(BytesRef.class);
 
   final long numTerms;
@@ -58,16 +83,16 @@ public final class FieldReader extends Terms implements Accountable {
   final BytesRef minTerm;
   final BytesRef maxTerm;
   final int longsSize;
-  final BlockTreeTermsReader parent;
+  final RocanaBlockTreeTermsReader parent;
 
   final FST<BytesRef> index;
   //private boolean DEBUG;
 
-  FieldReader(BlockTreeTermsReader parent, FieldInfo fieldInfo, long numTerms, BytesRef rootCode, long sumTotalTermFreq, long sumDocFreq, int docCount,
+  RocanaFieldReader(RocanaBlockTreeTermsReader parent, FieldInfo fieldInfo, long numTerms, BytesRef rootCode, long sumTotalTermFreq, long sumDocFreq, int docCount,
               long indexStartFP, int longsSize, IndexInput indexIn, BytesRef minTerm, BytesRef maxTerm) throws IOException {
     assert numTerms > 0;
     this.fieldInfo = fieldInfo;
-    //DEBUG = BlockTreeTermsReader.DEBUG && fieldInfo.name.equals("id");
+    //DEBUG = RocanaBlockTreeTermsReader.DEBUG && fieldInfo.name.equals("id");
     this.parent = parent;
     this.numTerms = numTerms;
     this.sumTotalTermFreq = sumTotalTermFreq; 
@@ -82,7 +107,7 @@ public final class FieldReader extends Terms implements Accountable {
     //   System.out.println("BTTR: seg=" + segment + " field=" + fieldInfo.name + " rootBlockCode=" + rootCode + " divisor=" + indexDivisor);
     // }
 
-    rootBlockFP = (new ByteArrayDataInput(rootCode.bytes, rootCode.offset, rootCode.length)).readVLong() >>> BlockTreeTermsReader.OUTPUT_FLAGS_NUM_BITS;
+    rootBlockFP = (new ByteArrayDataInput(rootCode.bytes, rootCode.offset, rootCode.length)).readVLong() >>> RocanaBlockTreeTermsReader.OUTPUT_FLAGS_NUM_BITS;
 
     if (indexIn != null) {
       final IndexInput clone = indexIn.clone();
@@ -126,9 +151,9 @@ public final class FieldReader extends Terms implements Accountable {
 
   /** For debugging -- used by CheckIndex too*/
   @Override
-  public Stats getStats() throws IOException {
+  public RocanaStats getStats() throws IOException {
     // TODO: add auto-prefix terms into stats
-    return new SegmentTermsEnum(this).computeBlockStats();
+    return new RocanaSegmentTermsEnum(this).computeBlockStats();
   }
 
   @Override
@@ -153,7 +178,7 @@ public final class FieldReader extends Terms implements Accountable {
 
   @Override
   public TermsEnum iterator() throws IOException {
-    return new SegmentTermsEnum(this);
+    return new RocanaSegmentTermsEnum(this);
   }
 
   @Override
@@ -178,11 +203,11 @@ public final class FieldReader extends Terms implements Accountable {
 
   @Override
   public TermsEnum intersect(CompiledAutomaton compiled, BytesRef startTerm) throws IOException {
-    // if (DEBUG) System.out.println("  FieldReader.intersect startTerm=" + BlockTreeTermsWriter.brToString(startTerm));
+    // if (DEBUG) System.out.println("  RocanaFieldReader.intersect startTerm=" + BlockTreeTermsWriter.brToString(startTerm));
     //System.out.println("intersect: " + compiled.type + " a=" + compiled.automaton);
-    // TODO: we could push "it's a range" or "it's a prefix" down into IntersectTermsEnum?
+    // TODO: we could push "it's a range" or "it's a prefix" down into RocanaIntersectTermsEnum?
     // can we optimize knowing that...?
-    return new IntersectTermsEnum(this, compiled.automaton, compiled.runAutomaton, compiled.commonSuffixRef, startTerm, compiled.sinkState);
+    return new RocanaIntersectTermsEnum(this, compiled.automaton, compiled.runAutomaton, compiled.commonSuffixRef, startTerm, compiled.sinkState);
   }
     
   @Override

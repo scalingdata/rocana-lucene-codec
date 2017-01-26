@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.blocktree;
+package com.rocana.lucene.codec.v1;
 
 
 import java.io.IOException;
@@ -28,6 +28,7 @@ import java.util.TreeMap;
 import org.apache.lucene.codecs.CodecUtil;
 import org.apache.lucene.codecs.FieldsProducer;
 import org.apache.lucene.codecs.PostingsReaderBase;
+import org.apache.lucene.codecs.blocktree.BlockTreeTermsWriter;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.IndexFileNames;
@@ -44,7 +45,33 @@ import org.apache.lucene.util.IOUtils;
 import org.apache.lucene.util.fst.ByteSequenceOutputs;
 import org.apache.lucene.util.fst.Outputs;
 
-/** A block-based terms index and dictionary that assigns
+/**
+ * Fork of Lucene's {@link org.apache.lucene.codecs.blocktree.BlockTreeTermsReader}
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
+ *
+ * Why we forked:
+ *   - We can't extend because it has final fields that must be set in the constructor,
+ *     and the constructor is the code we need to modify.
+ *
+ * What changed in the fork?
+ *   - Commented out the constructor's call to {@link CodecUtil#checksumEntireFile(IndexInput)}
+ *     for performance. The checksum is redundant since we store indexes on HDFS,
+ *     which also checksums. This checksum happens at an inopportune time as
+ *     we're trying to open a Rocana Search Searcher, which may happen during
+ *     a rebalance, and we'd rather eliminate that penalty altogether or at
+ *     least delay it until the rebalance finishes.
+ *   - Use the other forked classes, like {@link RocanaFieldReader}.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *
+ * To see a full diff of changes in our fork: compare this version to the very first
+ * commit in git history. That first commit is the exact file from Lucene with no
+ * modifications.
+ *
+ * @see RocanaSearchCodecV1
+ *
+ * Original Lucene documentation:
+ *  A block-based terms index and dictionary that assigns
  *  terms to variable length blocks according to how they
  *  share prefixes.  The terms index is a prefix trie
  *  whose leaves are term blocks.  The advantage of this
@@ -82,7 +109,7 @@ import org.apache.lucene.util.fst.Outputs;
  * @lucene.experimental
  */
 
-public final class BlockTreeTermsReader extends FieldsProducer {
+public final class RocanaBlockTreeTermsReader extends FieldsProducer {
 
   static final Outputs<BytesRef> FST_OUTPUTS = ByteSequenceOutputs.getSingleton();
   
@@ -123,7 +150,7 @@ public final class BlockTreeTermsReader extends FieldsProducer {
   // produce DocsEnum on demand
   final PostingsReaderBase postingsReader;
 
-  private final TreeMap<String,FieldReader> fields = new TreeMap<>();
+  private final TreeMap<String,RocanaFieldReader> fields = new TreeMap<>();
 
   /** File offset where the directory starts in the terms file. */
   private long dirOffset;
@@ -138,7 +165,7 @@ public final class BlockTreeTermsReader extends FieldsProducer {
   final boolean anyAutoPrefixTerms;
 
   /** Sole constructor. */
-  public BlockTreeTermsReader(PostingsReaderBase postingsReader, SegmentReadState state) throws IOException {
+  public RocanaBlockTreeTermsReader(PostingsReaderBase postingsReader, SegmentReadState state) throws IOException {
     boolean success = false;
     IndexInput indexIn = null;
     
@@ -228,8 +255,8 @@ public final class BlockTreeTermsReader extends FieldsProducer {
           throw new CorruptIndexException("invalid sumTotalTermFreq: " + sumTotalTermFreq + " sumDocFreq: " + sumDocFreq, termsIn);
         }
         final long indexStartFP = indexIn.readVLong();
-        FieldReader previous = fields.put(fieldInfo.name,       
-                                          new FieldReader(this, fieldInfo, numTerms, rootCode, sumTotalTermFreq, sumDocFreq, docCount,
+        RocanaFieldReader previous = fields.put(fieldInfo.name,       
+                                          new RocanaFieldReader(this, fieldInfo, numTerms, rootCode, sumTotalTermFreq, sumDocFreq, docCount,
                                                           indexStartFP, longsSize, indexIn, minTerm, maxTerm));
         if (previous != null) {
           throw new CorruptIndexException("duplicate field: " + fieldInfo.name, termsIn);
@@ -313,7 +340,7 @@ public final class BlockTreeTermsReader extends FieldsProducer {
   @Override
   public long ramBytesUsed() {
     long sizeInBytes = postingsReader.ramBytesUsed();
-    for(FieldReader reader : fields.values()) {
+    for(RocanaFieldReader reader : fields.values()) {
       sizeInBytes += reader.ramBytesUsed();
     }
     return sizeInBytes;

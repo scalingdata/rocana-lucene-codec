@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * uses checksums for HDFS blocks. Eliminating Lucene's checksum for
  * the entire file improves Searcher open performance.
  *
- * See ROCANA-8229
+ * If you have access to Rocana's JIRA, see ROCANA-8229.
  */
 public class RocanaSearchCodecV1 extends FilterCodec {
 

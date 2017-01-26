@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.lucene50;
+package com.rocana.lucene.codec.v1;
 
 
 import org.apache.lucene.analysis.MockAnalyzer;
@@ -32,8 +32,26 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
 import org.apache.lucene.util.TestUtil;
 
-/** 
- * Tests special cases of BlockPostingsFormat 
+/**
+ * Fork of Lucene's {@link org.apache.lucene.codecs.lucene50.TestBlockPostingsFormat2}
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
+ *
+ * Why we forked:
+ *   - To use existing Lucene tests to test our {@link RocanaLucene50PostingsFormat}.
+ *
+ * What changed in the fork?
+ *   - Use {@link RocanaLucene50PostingsFormat} instead of Lucene's original.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *
+ * To see a full diff of changes in our fork: compare this version to the very first
+ * commit in git history. That first commit is the exact file from Lucene with no
+ * modifications.
+ *
+ * @see RocanaSearchCodecV1
+ *
+ * Original Lucene documentation:
+ * Tests special cases of BlockPostingsFormat
  */
 
 public class TestBlockPostingsFormat2 extends LuceneTestCase {
@@ -45,7 +63,7 @@ public class TestBlockPostingsFormat2 extends LuceneTestCase {
     super.setUp();
     dir = newFSDirectory(createTempDir("testDFBlockSize"));
     IndexWriterConfig iwc = newIndexWriterConfig(new MockAnalyzer(random()));
-    iwc.setCodec(TestUtil.alwaysPostingsFormat(new Lucene50PostingsFormat()));
+    iwc.setCodec(TestUtil.alwaysPostingsFormat(new RocanaLucene50PostingsFormat()));
     iw = new RandomIndexWriter(random(), dir, iwc);
     iw.setDoRandomForceMerge(false); // we will ourselves
   }
@@ -55,7 +73,7 @@ public class TestBlockPostingsFormat2 extends LuceneTestCase {
     iw.close();
     TestUtil.checkIndex(dir); // for some extra coverage, checkIndex before we forceMerge
     IndexWriterConfig iwc = newIndexWriterConfig(new MockAnalyzer(random()));
-    iwc.setCodec(TestUtil.alwaysPostingsFormat(new Lucene50PostingsFormat()));
+    iwc.setCodec(TestUtil.alwaysPostingsFormat(new RocanaLucene50PostingsFormat()));
     iwc.setOpenMode(OpenMode.APPEND);
     IndexWriter iw = new IndexWriter(dir, iwc);
     iw.forceMerge(1);
@@ -85,7 +103,7 @@ public class TestBlockPostingsFormat2 extends LuceneTestCase {
   /** tests terms with df = blocksize */
   public void testDFBlockSize() throws Exception {
     Document doc = newDocument();
-    for (int i = 0; i < Lucene50PostingsFormat.BLOCK_SIZE; i++) {
+    for (int i = 0; i < RocanaLucene50PostingsFormat.BLOCK_SIZE; i++) {
       for (IndexableField f : doc.getFields()) {
         ((Field)f).setStringValue(f.name() + " " + f.name() + "_2");
       }
@@ -96,7 +114,7 @@ public class TestBlockPostingsFormat2 extends LuceneTestCase {
   /** tests terms with df % blocksize = 0 */
   public void testDFBlockSizeMultiple() throws Exception {
     Document doc = newDocument();
-    for (int i = 0; i < Lucene50PostingsFormat.BLOCK_SIZE * 16; i++) {
+    for (int i = 0; i < RocanaLucene50PostingsFormat.BLOCK_SIZE * 16; i++) {
       for (IndexableField f : doc.getFields()) {
         ((Field)f).setStringValue(f.name() + " " + f.name() + "_2");
       }
@@ -107,7 +125,7 @@ public class TestBlockPostingsFormat2 extends LuceneTestCase {
   /** tests terms with ttf = blocksize */
   public void testTTFBlockSize() throws Exception {
     Document doc = newDocument();
-    for (int i = 0; i < Lucene50PostingsFormat.BLOCK_SIZE/2; i++) {
+    for (int i = 0; i < RocanaLucene50PostingsFormat.BLOCK_SIZE/2; i++) {
       for (IndexableField f : doc.getFields()) {
         ((Field)f).setStringValue(f.name() + " " + f.name() + " " + f.name() + "_2 " + f.name() + "_2");
       }
@@ -118,7 +136,7 @@ public class TestBlockPostingsFormat2 extends LuceneTestCase {
   /** tests terms with ttf % blocksize = 0 */
   public void testTTFBlockSizeMultiple() throws Exception {
     Document doc = newDocument();
-    for (int i = 0; i < Lucene50PostingsFormat.BLOCK_SIZE/2; i++) {
+    for (int i = 0; i < RocanaLucene50PostingsFormat.BLOCK_SIZE/2; i++) {
       for (IndexableField f : doc.getFields()) {
         String proto = (f.name() + " " + f.name() + " " + f.name() + " " + f.name() + " " 
                        + f.name() + "_2 " + f.name() + "_2 " + f.name() + "_2 " + f.name() + "_2");
