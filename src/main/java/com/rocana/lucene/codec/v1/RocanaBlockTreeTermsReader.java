@@ -199,7 +199,10 @@ public final class RocanaBlockTreeTermsReader extends FieldsProducer {
       String indexName = IndexFileNames.segmentFileName(segment, state.segmentSuffix, TERMS_INDEX_EXTENSION);
       indexIn = state.directory.openInput(indexName, state.context);
       CodecUtil.checkIndexHeader(indexIn, TERMS_INDEX_CODEC_NAME, version, version, state.segmentInfo.getId(), state.segmentSuffix);
-      CodecUtil.checksumEntireFile(indexIn);
+      
+      // IMPORTANT: comment out this one line to prevent checksumming the entire file.
+      //            This is the reason we have a custom Lucene codec and forked Lucene classes.
+      //CodecUtil.checksumEntireFile(indexIn);
 
       // Have PostingsReader init itself
       postingsReader.init(termsIn, state);
