@@ -47,8 +47,20 @@ import org.apache.lucene.util.TestUtil;
 import org.junit.Test;
 
 /**
- * 
+ * Fork of Lucene's {@link org.apache.lucene.codecs.perfield.TestPerFieldPostingsFormat2}
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
  *
+ * Why we forked:
+ *   - To get an extra test for our fork of Lucene's
+ *     {@link org.apache.lucene.codecs.perfield.PerFieldPostingsFormat}
+ *
+ * What changed in the fork?
+ *   - Use {@link RocanaLucene50PostingsFormat} instead of Lucene's own
+ *     {@link org.apache.lucene.codecs.lucene50.Lucene50PostingsFormat}.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *   - Renamed class to have 'Rocana' in the name.
+ *   - Moved to a different package.
  */
 //TODO: would be better in this test to pull termsenums and instanceof or something?
 // this way we can verify PFPF is doing the right thing.
@@ -204,7 +216,7 @@ public class TestRocanaPerFieldPostingsFormat2 extends LuceneTestCase {
     final PostingsFormat luceneDefault = new RocanaLucene50PostingsFormat();
     final PostingsFormat simpleText = new SimpleTextPostingsFormat();
     final PostingsFormat memory = new MemoryPostingsFormat();
-    
+
     @Override
     public PostingsFormat getPostingsFormatForField(String field) {
       if (field.equals("id")) {
@@ -220,7 +232,7 @@ public class TestRocanaPerFieldPostingsFormat2 extends LuceneTestCase {
   public static class MockCodec2 extends AssertingCodec {
     final PostingsFormat luceneDefault = new RocanaLucene50PostingsFormat();
     final PostingsFormat simpleText = new SimpleTextPostingsFormat();
-    
+
     @Override
     public PostingsFormat getPostingsFormatForField(String field) {
       if (field.equals("id")) {
@@ -282,7 +294,7 @@ public class TestRocanaPerFieldPostingsFormat2 extends LuceneTestCase {
     };
     doTestMixedPostings(codec);
   }
-  
+
   public void testSameCodecDifferentParams() throws Exception {
     Codec codec = new AssertingCodec() {
       @Override
@@ -298,7 +310,7 @@ public class TestRocanaPerFieldPostingsFormat2 extends LuceneTestCase {
     };
     doTestMixedPostings(codec);
   }
-  
+
   private void doTestMixedPostings(Codec codec) throws Exception {
     Directory dir = newDirectory();
     IndexWriterConfig iwc = newIndexWriterConfig(new MockAnalyzer(random()));
