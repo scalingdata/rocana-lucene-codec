@@ -38,6 +38,8 @@ import org.apache.lucene.util.IOUtils;
  *   - Use the other forked classes.
  *   - Removed trailing whitespace.
  *   - Changed these javadocs.
+ *   - Renamed class to have 'Rocana' in the name.
+ *   - Moved to a different package.
  *
  * This is one of the forked classes where no logic changed, but to get
  * the fork to compile we had to fork this class too. That happened with

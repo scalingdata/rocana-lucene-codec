@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.perfield;
+package com.rocana.lucene.codec.v1;
 
 
 import java.io.Closeable;
@@ -32,9 +32,11 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.codecs.FieldsConsumer;
 import org.apache.lucene.codecs.FieldsProducer;
 import org.apache.lucene.codecs.PostingsFormat;
+import org.apache.lucene.codecs.perfield.PerFieldPostingsFormat;
 import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.FilterLeafReader.FilterFields;
@@ -48,35 +50,64 @@ import org.apache.lucene.util.IOUtils;
 import org.apache.lucene.util.RamUsageEstimator;
 
 /**
+ * Fork of Lucene's {@link org.apache.lucene.codecs.perfield.PerFieldPostingsFormat}
+ * from Lucene's git repository, tag: releases/lucene-solr/5.5.0
+ *
+ * Why we forked:
+ *   - The original code called {@link PostingsFormat#forName(String)} which means
+ *     Lucene uses the postings format specified in the Lucene index files, but for old
+ *     data written with the original Lucene54 codec that means Lucene loads it's own
+ *     "Lucene50" postings format rather than our faster forked version. This isn't a
+ *     problem for data written with our custom codec, as it specifies our custom
+ *     postings format name in the Lucene indexes.
+ *
+ * What changed in the fork?
+ *   - Instead of looking up the Lucene postings format via SPI using the "Lucene50"
+ *     short name, when we see that short name we instead return Rocana's fork of the
+ *     Lucene postings format.
+ *   - Removed trailing whitespace.
+ *   - Changed these javadocs.
+ *   - Renamed class to have 'Rocana' in the name.
+ *   - Moved to a different package.
+ *
+ * To see a full diff of changes in our fork: compare this version to this file's very
+ * first commit in git history. That first commit is the exact file from Lucene with no
+ * modifications.
+ *
+ * @see RocanaSearchCodecV1
+ *
+ * Original Lucene documentation:
  * Enables per field postings support.
  * <p>
- * Note, when extending this class, the name ({@link #getName}) is 
+ * Note, when extending this class, the name ({@link #getName}) is
  * written into the index. In order for the field to be read, the
  * name must resolve to your implementation via {@link #forName(String)}.
- * This method uses Java's 
+ * This method uses Java's
  * {@link ServiceLoader Service Provider Interface} to resolve format names.
  * <p>
- * Files written by each posting format have an additional suffix containing the 
- * format name. For example, in a per-field configuration instead of <tt>_1.prx</tt> 
+ * Files written by each posting format have an additional suffix containing the
+ * format name. For example, in a per-field configuration instead of <tt>_1.prx</tt>
  * filenames would look like <tt>_1_Lucene40_0.prx</tt>.
  * @see ServiceLoader
  * @lucene.experimental
  */
 
-public abstract class PerFieldPostingsFormat extends PostingsFormat {
+public abstract class RocanaPerFieldPostingsFormat extends PostingsFormat {
   /** Name of this {@link PostingsFormat}. */
   public static final String PER_FIELD_NAME = "PerField40";
 
   /** {@link FieldInfo} attribute name used to store the
    *  format name for each field. */
+  // intentionally use the non-forked class name so we don't change the on-disk format
   public static final String PER_FIELD_FORMAT_KEY = PerFieldPostingsFormat.class.getSimpleName() + ".format";
 
   /** {@link FieldInfo} attribute name used to store the
    *  segment suffix name for each field. */
+  // intentionally use the non-forked class name so we don't change the on-disk format
   public static final String PER_FIELD_SUFFIX_KEY = PerFieldPostingsFormat.class.getSimpleName() + ".suffix";
 
   /** Sole constructor. */
-  public PerFieldPostingsFormat() {
+  public RocanaPerFieldPostingsFormat() {
     super(PER_FIELD_NAME);
   }
 
@@ -102,10 +133,10 @@ public abstract class PerFieldPostingsFormat extends PostingsFormat {
       // TODO: support embedding; I think it should work but
       // we need a test confirm to confirm
       // return outerSegmentSuffix + "_" + segmentSuffix;
-      throw new IllegalStateException("cannot embed PerFieldPostingsFormat inside itself (field \"" + fieldName + "\" returned PerFieldPostingsFormat)");
+      throw new IllegalStateException("cannot embed RocanaPerFieldPostingsFormat inside itself (field \"" + fieldName + "\" returned RocanaPerFieldPostingsFormat)");
     }
   }
-  
+
   private class FieldsWriter extends FieldsConsumer {
     final SegmentWriteState writeState;
     final List<Closeable> toClose = new ArrayList<Closeable>();
@@ -129,12 +160,12 @@ public abstract class PerFieldPostingsFormat extends PostingsFormat {
         FieldInfo fieldInfo = writeState.fieldInfos.fieldInfo(field);
 
         final PostingsFormat format = getPostingsFormatForField(field);
-  
+
         if (format == null) {
           throw new IllegalStateException("invalid null PostingsFormat for field=\"" + field + "\"");
         }
         String formatName = format.getName();
-      
+
         FieldsGroup group = formatToGroups.get(format);
         if (group == null) {
           // First time we are seeing this format; create a
@@ -167,13 +198,13 @@ public abstract class PerFieldPostingsFormat extends PostingsFormat {
 
         String previousValue = fieldInfo.putAttribute(PER_FIELD_FORMAT_KEY, formatName);
         if (previousValue != null) {
-          throw new IllegalStateException("found existing value for " + PER_FIELD_FORMAT_KEY + 
+          throw new IllegalStateException("found existing value for " + PER_FIELD_FORMAT_KEY +
                                           ", field=" + fieldInfo.name + ", old=" + previousValue + ", new=" + formatName);
         }
 
         previousValue = fieldInfo.putAttribute(PER_FIELD_SUFFIX_KEY, Integer.toString(group.suffix));
         if (previousValue != null) {
-          throw new IllegalStateException("found existing value for " + PER_FIELD_SUFFIX_KEY + 
+          throw new IllegalStateException("found existing value for " + PER_FIELD_SUFFIX_KEY +
                                           ", field=" + fieldInfo.name + ", old=" + previousValue + ", new=" + group.suffix);
         }
       }
@@ -218,7 +249,7 @@ public abstract class PerFieldPostingsFormat extends PostingsFormat {
     private final Map<String,FieldsProducer> fields = new TreeMap<>();
     private final Map<String,FieldsProducer> formats = new HashMap<>();
     private final String segment;
-    
+
     // clone for merge
     FieldsReader(FieldsReader other) throws IOException {
       Map<FieldsProducer,FieldsProducer> oldToNew = new IdentityHashMap<>();
@@ -255,7 +286,7 @@ public abstract class PerFieldPostingsFormat extends PostingsFormat {
               if (suffix == null) {
                 throw new IllegalStateException("missing attribute: " + PER_FIELD_SUFFIX_KEY + " for field: " + fieldName);
               }
-              PostingsFormat format = PostingsFormat.forName(formatName);
+              PostingsFormat format = lookupPostingsFormat(formatName);
               String segmentSuffix = getSuffix(formatName, suffix);
               if (!formats.containsKey(segmentSuffix)) {
                 formats.put(segmentSuffix, format.fieldsProducer(new SegmentReadState(readState, segmentSuffix)));
@@ -274,6 +305,39 @@ public abstract class PerFieldPostingsFormat extends PostingsFormat {
       this.segment = readState.segmentInfo.name;
     }
 
+    /**
+     * Return our fork of Lucene's postings format.
+     *
+     * The original Lucene code did an SPI (Service Provider Interface) lookup to
+     * get the postings format. We've changed that so now it returns our fork of
+     * the Lucene postings format.
+     *
+     * Newer Lucene indexes, written with the Rocana codec, list Rocana's posting format
+     * inside the file. In that case the short name passed in to this method will not be
+     * "Lucene50" but will instead be Rocana's postings format short name. So we let the
+     * SPI lookup continue like normal and return Rocana's forked postings format.
+     *
+     * However, older Lucene indexes, written with the original Lucene54 codec, list
+     * Lucene's "Lucene50" postings format. For that older data we still want the faster
+     * speed of our forked postings format. So when thsi method gets called and the
+     * with "Lucene50" as the short name, we instead return our forked postings format.
+     *
+     * We have a tool that retroactively changes the codec from "Lucene54" to Rocana's
+     * custom codec name. It does so by changing some metadata files in the Lucene index.
+     * However, the tool does not change the postings format name written in those older
+     * Lucene indexes since that's not a metadata-only change. We'd have to rewrite GB
+     * and GB of data to do that. Instead we do this method's trickery and return our
+     * faster forked codec even for old data.
+     */
+    private PostingsFormat lookupPostingsFormat(String postingsFormatShortName) {
+      if (postingsFormatShortName.equals("Lucene50")) {
+        RocanaSearchCodecV1 codec = (RocanaSearchCodecV1) Codec.forName(RocanaSearchCodecV1.NAME);
+        return codec.getActualPostingsFormat();
+      } else {
+        return PostingsFormat.forName(postingsFormatShortName);
+      }
+    }
+
     @Override
     public Iterator<String> iterator() {
       return Collections.unmodifiableSet(fields.keySet()).iterator();
@@ -284,7 +348,7 @@ public abstract class PerFieldPostingsFormat extends PostingsFormat {
       FieldsProducer fieldsProducer = fields.get(field);
       return fieldsProducer == null ? null : fieldsProducer.terms(field);
     }
-    
+
     @Override
     public int size() {
       return fields.size();
@@ -305,7 +369,7 @@ public abstract class PerFieldPostingsFormat extends PostingsFormat {
       }
       return ramBytesUsed;
     }
-    
+
     @Override
     public Collection<Accountable> getChildResources() {
       return Accountables.namedAccountables("format", formats);
@@ -341,8 +405,8 @@ public abstract class PerFieldPostingsFormat extends PostingsFormat {
     return new FieldsReader(state);
   }
 
-  /** 
-   * Returns the postings format that should be used for writing 
+  /**
+   * Returns the postings format that should be used for writing
    * new segments of <code>field</code>.
    * <p>
    * The field to format mapping is written to the index, so

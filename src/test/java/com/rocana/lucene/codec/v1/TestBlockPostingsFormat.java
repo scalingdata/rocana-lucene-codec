@@ -23,7 +23,6 @@ import org.apache.lucene.codecs.blocktree.FieldReader;
 import org.apache.lucene.codecs.blocktree.Stats;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.index.BasePostingsFormatTestCase;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -41,6 +40,7 @@ import org.apache.lucene.util.TestUtil;
  *   - Use {@link RocanaLucene50PostingsFormat} instead of Lucene's original.
  *   - Removed trailing whitespace.
  *   - Changed these javadocs.
+ *   - Moved to a different package.
  *
  * To see a full diff of changes in our fork: compare this version to the very first
  * commit in git history. That first commit is the exact file from Lucene with no
@@ -51,7 +51,7 @@ import org.apache.lucene.util.TestUtil;
  * Original Lucene documentation:
  * Tests BlockPostingsFormat
  */
-public class TestBlockPostingsFormat extends BasePostingsFormatTestCase {
+public class TestBlockPostingsFormat extends RocanaBasePostingsFormatTestCase {
   private final Codec codec = TestUtil.alwaysPostingsFormat(new RocanaLucene50PostingsFormat());
 
   @Override

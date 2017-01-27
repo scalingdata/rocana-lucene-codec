@@ -23,7 +23,6 @@ import org.apache.lucene.codecs.CodecUtil;
 import org.apache.lucene.codecs.FilterCodec;
 import org.apache.lucene.codecs.PostingsFormat;
 import org.apache.lucene.codecs.lucene54.Lucene54Codec;
-import org.apache.lucene.codecs.perfield.PerFieldPostingsFormat;
 import org.apache.lucene.index.SegmentReadState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,18 +88,19 @@ public class RocanaSearchCodecV1 extends FilterCodec {
   public static final String NAME = RocanaSearchCodecV1.class.getSimpleName();
   private static final Logger logger = LoggerFactory.getLogger(RocanaSearchCodecV1.class);
 
-  private final PerFieldPostingsFormat postingsFormat;
+  private final RocanaPerFieldPostingsFormat perFieldPostingsFormat;
+  private final RocanaLucene50PostingsFormat actualPostingsFormat;
 
   public RocanaSearchCodecV1() {
     super(NAME, new Lucene54Codec());
     logger.debug("Instantiated custom codec: {} which wraps codec: {}", getClass(), getWrappedCodec().getClass());
 
-    final RocanaLucene50PostingsFormat forkedPostingsFormat = new RocanaLucene50PostingsFormat();
+    actualPostingsFormat = new RocanaLucene50PostingsFormat();
 
-    postingsFormat = new PerFieldPostingsFormat() {
+    perFieldPostingsFormat = new RocanaPerFieldPostingsFormat() {
       @Override
       public PostingsFormat getPostingsFormatForField(String field) {
-        return forkedPostingsFormat;
+        return actualPostingsFormat;
       }
     };
   }
@@ -126,7 +126,24 @@ public class RocanaSearchCodecV1 extends FilterCodec {
    */
   @Override
   public PostingsFormat postingsFormat() {
-    return postingsFormat;
+    return perFieldPostingsFormat;
+  }
+
+  /**
+   * Return our fork of Lucene's postings format.
+   *
+   * Typical Lucene code would look up the postings format via SPI (Java's
+   * Service Provider Interface) but in one case we need another approach.
+   *
+   * Lucene normally uses the postings format specified in the Lucene index
+   * files, but that for historical data (written with the original Lucene54
+   * codec) Lucene will load it's "Lucene50" postings format instead of our
+   * faster forked version. For that case we intercept the SPI call that
+   * looks up the "Lucene50" postings format and instead call this method
+   * to return our forked postings format.
+   */
+  public RocanaLucene50PostingsFormat getActualPostingsFormat() {
+    return actualPostingsFormat;
   }
 
 }

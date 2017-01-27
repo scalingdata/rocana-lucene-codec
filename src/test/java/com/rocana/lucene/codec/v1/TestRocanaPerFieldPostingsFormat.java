@@ -14,24 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.perfield;
+package com.rocana.lucene.codec.v1;
 
-
-import java.util.Collections;
-import java.util.Random;
 
 import org.apache.lucene.codecs.Codec;
-import org.apache.lucene.index.BasePostingsFormatTestCase;
-import org.apache.lucene.index.RandomCodec;
+import org.apache.lucene.util.LuceneTestCase.SuppressSysoutChecks;
 
 /**
  * Basic tests of PerFieldPostingsFormat
  */
-public class TestPerFieldPostingsFormat extends BasePostingsFormatTestCase {
+@SuppressSysoutChecks(bugUrl = "our codec logs more than Lucene expects over SLF4J")
+public class TestRocanaPerFieldPostingsFormat extends RocanaBasePostingsFormatTestCase {
 
   @Override
   protected Codec getCodec() {
-    return new RandomCodec(new Random(random().nextLong()), Collections.<String>emptySet());
+    return new RocanaSearchCodecV1();
   }
 
   @Override

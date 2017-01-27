@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.lucene.codecs.perfield;
+package com.rocana.lucene.codec.v1;
 
 
 import java.io.IOException;
@@ -53,7 +53,7 @@ import org.junit.Test;
 //TODO: would be better in this test to pull termsenums and instanceof or something?
 // this way we can verify PFPF is doing the right thing.
 // for now we do termqueries.
-public class TestPerFieldPostingsFormat2 extends LuceneTestCase {
+public class TestRocanaPerFieldPostingsFormat2 extends LuceneTestCase {
 
   private IndexWriter newWriter(Directory dir, IndexWriterConfig conf)
       throws IOException {
@@ -201,7 +201,7 @@ public class TestPerFieldPostingsFormat2 extends LuceneTestCase {
   }
 
   public static class MockCodec extends AssertingCodec {
-    final PostingsFormat luceneDefault = TestUtil.getDefaultPostingsFormat();
+    final PostingsFormat luceneDefault = new RocanaLucene50PostingsFormat();
     final PostingsFormat simpleText = new SimpleTextPostingsFormat();
     final PostingsFormat memory = new MemoryPostingsFormat();
     
@@ -218,7 +218,7 @@ public class TestPerFieldPostingsFormat2 extends LuceneTestCase {
   }
 
   public static class MockCodec2 extends AssertingCodec {
-    final PostingsFormat luceneDefault = TestUtil.getDefaultPostingsFormat();
+    final PostingsFormat luceneDefault = new RocanaLucene50PostingsFormat();
     final PostingsFormat simpleText = new SimpleTextPostingsFormat();
     
     @Override

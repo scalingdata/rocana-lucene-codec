@@ -53,6 +53,8 @@ import org.apache.lucene.util.packed.PackedInts;
  *     rather than the normal Lucene class.
  *   - Removed trailing whitespace.
  *   - Changed these javadocs.
+ *   - Renamed class to have 'Rocana' in the name.
+ *   - Moved to a different package.
  *
  * To see a full diff of changes in our fork: compare this version to the very first
  * commit in git history. That first commit is the exact file from Lucene with no

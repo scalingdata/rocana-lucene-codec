@@ -48,13 +48,41 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * This is a partial fork of Lucene's {@link BasePostingsFormatTestCase}.
+ *
+ * Since that class is public we can extend it and override just the method
+ * we need to change (so just ~232 lines forked, rather than 2373 lines of
+ * forked code).
+ *
+ * Why we forked:
+ *   - Some code uses Lucene's {@link PerFieldPostingsFormat} but we need it to
+ *     also recognize our fork of that class: {@link RocanaPerFieldPostingsFormat}.
+ *
+ * What changed in the fork?
+ *   - Added an instanceof check for {@link RocanaPerFieldPostingsFormat} to "unwrap"
+ *     the actual postings format. In more detail: the method below already does the
+ *     same thing for Lucene's {@link PerFieldPostingsFormat}, we just needed to add
+ *     support for our {@link RocanaPerFieldPostingsFormat}.
+ *   - Removed trailing whitespace.
+ *
+ * To see a full diff of the changes in this partial fork: compare this version to
+ * the very first commit in git history. That first commit is the exact method from
+ * Lucene with no modifications.
+ */
 public abstract class RocanaBasePostingsFormatTestCase extends BasePostingsFormatTestCase {
 
+  /**
+   * This class is a copy of the same class in the super class,
+   * but the one in the super class is private and therefore
+   * not accessible.
+   */
   private static class TermFreqs {
     long totalTermFreq;
     int docFreq;
   };
-  
+
+  @Override
   public void testInvertedWrite() throws Exception {
     Directory dir = newDirectory();
     MockAnalyzer analyzer = new MockAnalyzer(random());
@@ -80,6 +108,9 @@ public abstract class RocanaBasePostingsFormatTestCase extends BasePostingsForma
           PostingsFormat p = getCodec().postingsFormat();
           if (p instanceof PerFieldPostingsFormat) {
             p = ((PerFieldPostingsFormat) p).getPostingsFormatForField(field);
+          }
+          if (p instanceof RocanaPerFieldPostingsFormat) {
+            p = ((RocanaPerFieldPostingsFormat) p).getPostingsFormatForField(field);
           }
           final PostingsFormat defaultPostingsFormat = p;
 

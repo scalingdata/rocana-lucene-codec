@@ -67,6 +67,7 @@ import org.apache.lucene.util.automaton.RegExp;
  *   - Use {@link RocanaLucene50PostingsFormat} instead of Lucene's original.
  *   - Removed trailing whitespace.
  *   - Changed these javadocs.
+ *   - Moved to a different package.
  *
  * To see a full diff of changes in our fork: compare this version to the very first
  * commit in git history. That first commit is the exact file from Lucene with no
