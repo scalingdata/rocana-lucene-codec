@@ -33,8 +33,68 @@ import java.util.Properties;
 
 /**
  * Unit test for {@link RocanaSearchCodecV1}.
+ *
+ * This test class contains additional Rocana codec tests and is not a fork of
+ * any existing Lucene tests. In other words, these tests are original.
  */
 public class TestRocanaSearchCodecV1 {
+
+  /**
+   * Verify the postings format is our custom class, as we expect.
+   *
+   * We need this since our {@link RocanaPerFieldPostingsFormat} has
+   * special code that returns our real postings format even if Lucene
+   * asks the Service Provider Interface (SPI) to lookup it's own
+   * "Lucene50" postings format.
+   */
+  @Test
+  public void postingsFormatReturnsOurForkOfPerFieldPostingsFormat() {
+    RocanaSearchCodecV1 codec = new RocanaSearchCodecV1();
+
+    PostingsFormat postingsFormat = codec.postingsFormat();
+
+    Assert.assertTrue(
+      "Expected an instance of " + RocanaPerFieldPostingsFormat.class.getSimpleName(),
+      postingsFormat instanceof RocanaPerFieldPostingsFormat
+    );
+  }
+
+  /**
+   * Verify the {@link RocanaPerFieldPostingsFormat} we receive is a wrapper
+   * around the real postings format.
+   *
+   * Our forked postings format is one of the keys to our ultimate goal.
+   * Our forked postings format returns our {@link RocanaBlockTreeTermsReader}
+   * whose code has been altered such that it doesn't checksum the entire file.
+   */
+  @Test
+  public void postingsFormatWrapsOurForkOfLucenesPostingsFormat() {
+    RocanaSearchCodecV1 codec = new RocanaSearchCodecV1();
+    RocanaPerFieldPostingsFormat perFieldPostingsFormat = (RocanaPerFieldPostingsFormat) codec.postingsFormat();
+
+    PostingsFormat postingsFormat = perFieldPostingsFormat.getPostingsFormatForField("some fake field");
+
+    Assert.assertEquals(
+      "Expected an instance of type " + RocanaLucene50PostingsFormat.class.getSimpleName(),
+      postingsFormat.getClass(), RocanaLucene50PostingsFormat.class
+    );
+  }
+
+  /**
+   * The method should return the real {@link RocanaLucene50PostingsFormat}, not the
+   * wrapper class {@link RocanaSearchCodecV1#postingsFormat()} returns.
+   */
+  @Test
+  public void getActualPostingsFormatShouldReturnSameInstanceAsPostingsFormatForAField() {
+    RocanaSearchCodecV1 codec = new RocanaSearchCodecV1();
+    RocanaPerFieldPostingsFormat perFieldPostingsFormat = (RocanaPerFieldPostingsFormat) codec.postingsFormat();
+    PostingsFormat expected = perFieldPostingsFormat.getPostingsFormatForField("some fake field");
+
+    PostingsFormat actual = codec.getActualPostingsFormat();
+
+    Assert.assertEquals(actual.getClass(), RocanaLucene50PostingsFormat.class);
+    Assert.assertSame(expected, actual);
+  }
 
   /**
    * Verify we get the exact same instance Lucene instantiated for SPI

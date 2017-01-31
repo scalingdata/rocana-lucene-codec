@@ -242,7 +242,8 @@ public abstract class RocanaPerFieldPostingsFormat extends PostingsFormat {
     }
   }
 
-  private static class FieldsReader extends FieldsProducer {
+  // Visible For Testing
+  static class FieldsReader extends FieldsProducer {
 
     private static final long BASE_RAM_BYTES_USED = RamUsageEstimator.shallowSizeOfInstance(FieldsReader.class);
 
@@ -329,7 +330,8 @@ public abstract class RocanaPerFieldPostingsFormat extends PostingsFormat {
      * and GB of data to do that. Instead we do this method's trickery and return our
      * faster forked codec even for old data.
      */
-    private PostingsFormat lookupPostingsFormat(String postingsFormatShortName) {
+    //Visible For Testing
+    static PostingsFormat lookupPostingsFormat(String postingsFormatShortName) {
       if (postingsFormatShortName.equals("Lucene50")) {
         RocanaSearchCodecV1 codec = (RocanaSearchCodecV1) Codec.forName(RocanaSearchCodecV1.SHORT_NAME);
         return codec.getActualPostingsFormat();
