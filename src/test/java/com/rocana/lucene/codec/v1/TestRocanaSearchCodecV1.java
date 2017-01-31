@@ -18,6 +18,7 @@
  */
 package com.rocana.lucene.codec.v1;
 
+import org.apache.lucene.codecs.PostingsFormat;
 import org.apache.lucene.util.Version;
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,6 +35,22 @@ import java.util.Properties;
  * Unit test for {@link RocanaSearchCodecV1}.
  */
 public class TestRocanaSearchCodecV1 {
+
+  /**
+   * Verify we get the exact same instance Lucene instantiated for SPI
+   * (Service Provider Interface) lookups. Lucene only instantiates the
+   * postings format once, and there's no reason we shouldn't use that
+   * exact same instance.
+   */
+  @Test
+  public void getActualPostingsFormatShouldReturnPostingsFormatFromSPI() {
+    RocanaSearchCodecV1 codec = new RocanaSearchCodecV1();
+    PostingsFormat expected = PostingsFormat.forName(RocanaLucene50PostingsFormat.SHORT_NAME);
+
+    PostingsFormat actual = codec.getActualPostingsFormat();
+
+    Assert.assertSame("Expected the exact same instance the SPI lookup returned", expected, actual);
+  }
 
   /**
    * This test ensures we don't rename the codec class and forget to

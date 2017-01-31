@@ -19,8 +19,6 @@ package com.rocana.lucene.codec.v1;
 
 import org.apache.lucene.analysis.MockAnalyzer;
 import org.apache.lucene.codecs.Codec;
-import org.apache.lucene.codecs.blocktree.FieldReader;
-import org.apache.lucene.codecs.blocktree.Stats;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.DirectoryReader;
@@ -73,9 +71,9 @@ public class TestBlockPostingsFormat extends RocanaBasePostingsFormatTestCase {
 
     DirectoryReader r = DirectoryReader.open(w);
     assertEquals(1, r.leaves().size());
-    FieldReader field = (FieldReader) r.leaves().get(0).reader().fields().terms("field");
+    RocanaFieldReader field = (RocanaFieldReader) r.leaves().get(0).reader().fields().terms("field");
     // We should see exactly two blocks: one root block (prefix empty string) and one block for z* terms (prefix z):
-    Stats stats = field.getStats();
+    RocanaStats stats = field.getStats();
     assertEquals(0, stats.floorBlockCount);
     assertEquals(2, stats.nonFloorBlockCount);
     r.close();

@@ -331,7 +331,7 @@ public abstract class RocanaPerFieldPostingsFormat extends PostingsFormat {
      */
     private PostingsFormat lookupPostingsFormat(String postingsFormatShortName) {
       if (postingsFormatShortName.equals("Lucene50")) {
-        RocanaSearchCodecV1 codec = (RocanaSearchCodecV1) Codec.forName(RocanaSearchCodecV1.NAME);
+        RocanaSearchCodecV1 codec = (RocanaSearchCodecV1) Codec.forName(RocanaSearchCodecV1.SHORT_NAME);
         return codec.getActualPostingsFormat();
       } else {
         return PostingsFormat.forName(postingsFormatShortName);

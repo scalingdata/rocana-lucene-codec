@@ -16,10 +16,9 @@
 # limitations under the License.
 
 # This is an SPI (service provider interface) config file so Lucene can look up
-# our custom codec at runtime using just the fully qualified class name here.
-# We still have to tell Lucene to use our codec, but just adding the class name
-# here let's Lucene pick it up and register it.
+# our custom postings format at runtime using just the fully qualified class name
+# here.
 #
-# See ROCANA-8229
+# If you have access to the Rocana JIRA, see ROCANA-8229.
 
-com.rocana.lucene.codec.v1.RocanaSearchCodecV1
+com.rocana.lucene.codec.v1.RocanaLucene50PostingsFormat

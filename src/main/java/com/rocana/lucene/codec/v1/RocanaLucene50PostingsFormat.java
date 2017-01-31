@@ -51,6 +51,12 @@ import org.apache.lucene.util.packed.PackedInts;
  * What changed in the fork?
  *   - {@link #fieldsProducer(SegmentReadState)} returns a fork: {@link RocanaBlockTreeTermsReader}
  *     rather than the normal Lucene class.
+ *   - Used a custom 'short name' rather than "Lucene50". We add our own short name so
+ *     Lucene can write it to the Lucene indexes, then lookup our postings format
+ *     dynamically. If we didn't do this Lucene would read it's own postings format
+ *     ("Lucene50") from the Lucene index and could look up it's own postings format
+ *     rather than ours.
+ *   - Added a constant for the 'short name'
  *   - Removed trailing whitespace.
  *   - Changed these javadocs.
  *   - Renamed class to have 'Rocana' in the name.
@@ -378,6 +384,26 @@ import org.apache.lucene.util.packed.PackedInts;
 
 public final class RocanaLucene50PostingsFormat extends PostingsFormat {
   /**
+   * Custom 'short name' for this postings format, used for SPI (Service Provider
+   * Interface) lookups.
+   *
+   * The "long name" is the fully qualified class, which appears in the SPI file:
+   * META-INF/services/org.apache.lucene.codecs.PostingsFormat
+   *
+   * This constant is specific to the Rocana fork. In the original Lucene code the
+   * short name was "Lucene50" (though there it wasn't a constant, it was hardcoded).
+   *
+   * By using a custom short name we potentially run into two problems, which aren't
+   * an issue yet:
+   * 1. org.apache.lucene.search.suggest.document.Completion50PostingsFormat hard codes
+   *    "Lucene50" as the postings format short name. If Rocana Search ever starts
+   *    using that class we may need to fork it to use Rocana's postings format short
+   *    name instead of "Lucene50"
+   * 2. Same for {@link org.apache.lucene.codecs.memory.DirectPostingsFormat}
+   */
+  public static final String SHORT_NAME = RocanaLucene50PostingsFormat.class.getSimpleName();
+
+  /**
    * Filename extension for document number, frequencies, and skip data.
    * See chapter: <a href="#Frequencies">Frequencies and Skip Data</a>
    */
@@ -431,7 +457,7 @@ public final class RocanaLucene50PostingsFormat extends PostingsFormat {
    *  maxBlockSize} passed to block terms dictionary.
    *  @see BlockTreeTermsWriter#BlockTreeTermsWriter(SegmentWriteState,PostingsWriterBase,int,int) */
   public RocanaLucene50PostingsFormat(int minTermBlockSize, int maxTermBlockSize) {
-    super("Lucene50");
+    super(SHORT_NAME);
     BlockTreeTermsWriter.validateSettings(minTermBlockSize, maxTermBlockSize);
     this.minTermBlockSize = minTermBlockSize;
     this.maxTermBlockSize = maxTermBlockSize;

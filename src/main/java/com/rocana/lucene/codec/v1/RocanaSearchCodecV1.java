@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
  * We also gave this codec a unique 'short name', which gets written
  * to Lucene's segment info files. When reading those files Lucene
  * looks up our codec using Java's Service Provider Interface (SPI).
- * See {@link #NAME}.
+ * See {@link #SHORT_NAME}.
  *
  * This custom codec wraps Lucene's codec: {@link Lucene54Codec}. It
  * does that specifically to return our custom postings format:
@@ -85,17 +85,25 @@ import org.slf4j.LoggerFactory;
  */
 public class RocanaSearchCodecV1 extends FilterCodec {
 
-  public static final String NAME = RocanaSearchCodecV1.class.getSimpleName();
+  /**
+   * The short name, which appears in the Lucene index files.
+   *
+   * The 'long name' is the fully qualified class name, which appears
+   * in the SPI (Service Provider Interface) file:
+   * META-INF/services/org.apache.lucene.codecs.Codec
+   */
+  public static final String SHORT_NAME = RocanaSearchCodecV1.class.getSimpleName();
   private static final Logger logger = LoggerFactory.getLogger(RocanaSearchCodecV1.class);
 
   private final RocanaPerFieldPostingsFormat perFieldPostingsFormat;
   private final RocanaLucene50PostingsFormat actualPostingsFormat;
 
   public RocanaSearchCodecV1() {
-    super(NAME, new Lucene54Codec());
+    super(SHORT_NAME, new Lucene54Codec());
     logger.debug("Instantiated custom codec: {} which wraps codec: {}", getClass(), getWrappedCodec().getClass());
 
-    actualPostingsFormat = new RocanaLucene50PostingsFormat();
+    // use SPI so we use the exact instance Lucene instantiated (it only instantiates it once, then caches it)
+    actualPostingsFormat = (RocanaLucene50PostingsFormat) PostingsFormat.forName(RocanaLucene50PostingsFormat.SHORT_NAME);
 
     perFieldPostingsFormat = new RocanaPerFieldPostingsFormat() {
       @Override
