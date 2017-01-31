@@ -18,18 +18,11 @@
  */
 package com.rocana.lucene.codec.v1;
 
+import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.codecs.PostingsFormat;
 import org.apache.lucene.util.Version;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Properties;
 
 /**
  * Unit test for {@link RocanaSearchCodecV1}.
@@ -113,31 +106,14 @@ public class TestRocanaSearchCodecV1 {
   }
 
   /**
-   * This test ensures we don't rename the codec class and forget to
-   * update the SPI config file.
-   *
-   * In META-INF/services/org.apache.lucene.codecs.Codec we store
-   * the fully qualified codec name. If we rename the Codec class
-   * we have to update the SPI config file too. If we forget, this
-   * test reminds us by failing.
+   * This test ensures we registered our codec properly in the SPI file:
+   * META-INF/services/org.apache.lucene.codecs.Codec
    */
   @Test
   public void validateJavaServiceProviderConfigFile() throws Exception {
-    File serviceProviderConfigFile = findCodecServiceProviderFile();
-    Properties properties = new Properties();
+    Codec codec = Codec.forName(RocanaSearchCodecV1.SHORT_NAME);
 
-    try (InputStream inputStream = new FileInputStream(serviceProviderConfigFile)) {
-      properties.load(inputStream);
-    }
-
-    String expectedCodecName = RocanaSearchCodecV1.class.getName();
-    Assert.assertEquals("Expected exactly 1 entry, specifying our custom codec", 1, properties.size());
-    Assert.assertTrue("Expected the config file to contain the codec name.", properties.containsKey(expectedCodecName));
-    Assert.assertEquals(
-      "There shouldn't be a value (this isn't a real properties file, it just uses comments like properties files do and we want to ignore them)",
-      "",
-      properties.get(expectedCodecName)
-    );
+    Assert.assertEquals("Expected the Rocana codec", RocanaSearchCodecV1.class, codec.getClass());
   }
 
   /**
@@ -159,52 +135,4 @@ public class TestRocanaSearchCodecV1 {
     );
   }
 
-  /**
-   * Originally we used this instead:
-   *
-   *   Resources.getResource("META-INF/services/org.apache.lucene.codecs.Codec");
-   *
-   * That would work well except for one potential problem: Lucene's
-   * own jar puts a file of the same name on the classpath. That means
-   * for our test to work our module would have to be earlier on the
-   * classpath than Lucene. That might be totally reasonable in Maven,
-   * IntelliJ, and Eclipse, but it also seems risky. Instead we'll
-   * traverse the file system and find the right Codecs SPI (service
-   * provider interface) file.
-   */
-  private File findCodecServiceProviderFile() throws URISyntaxException, IOException {
-
-    Class<?> classFileToFind = RocanaSearchCodecV1.class;
-    File classFile = findClassOnFileSystem(classFileToFind);
-    int numParentDirectories = countDirectoriesInPackage(classFileToFind);
-    File classpathRoot = traverseParents(classFile, numParentDirectories);
-
-    File serviceProviderFile = new File(classpathRoot, "META-INF/services/org.apache.lucene.codecs.Codec");
-    return serviceProviderFile;
-  }
-
-  private File findClassOnFileSystem(Class<?> classFileToFind) throws URISyntaxException {
-    String classFileName = classFileToFind.getSimpleName() + ".class";
-    URL classFileUrl = getClass().getResource(classFileName);
-
-    return new File(classFileUrl.toURI());
-  }
-
-  private int countDirectoriesInPackage(Class<?> classFile) {
-    String fullPackageName = classFile.getPackage().getName();
-    String[] directoryNames = fullPackageName.split("\\.");
-
-    return directoryNames.length;
-  }
-
-  private File traverseParents(File file, int numParents) {
-    File parent = file.getParentFile();
-
-    while (numParents > 0) {
-      parent = parent.getParentFile();
-      numParents--;
-    }
-
-    return parent;
-  }
 }
