@@ -20,7 +20,6 @@ package com.rocana.lucene.codec.v1;
 
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.codecs.PostingsFormat;
-import org.apache.lucene.util.Version;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -117,22 +116,19 @@ public class TestRocanaSearchCodecV1 {
   }
 
   /**
-   * This test reminds us to check the codec version when upgrading Lucene.
+   * This test verifies we wrap the "Lucene54" codec.
    *
-   * Rationale: a failing test is better than a comment in the pom file
-   * reminding us to check the codec when upgrading Lucene.
+   * We can't wrap a different Lucene codec because this custom codec must read
+   * old data written before we had a custom codec. All old data in production
+   * was written by the Lucene54 codec. If we need to wrap a newer version, where
+   * the on-disk Lucene index format has changed, then we need to create
+   * RocanaSearchCodecV2.
    */
   @Test
-  public void luceneCodecVersionShouldMatchActualLuceneVersion() {
+  public void ourCodecWrapsLucene54() {
     String luceneCodecName = new RocanaSearchCodecV1().getWrappedCodec().getName();
-    String luceneVersion = Version.LATEST.toString();
 
-    Assert.assertTrue(
-      "Reminder: check the Lucene codec version when upgrading Lucene. "
-      + "Example: if upgrading to Lucene 6.0 consider changing to the Lucene60 codec. "
-      + "To fix this test: change the Lucene version string (ex: 6.0.0) and change the codec name if upgrading it",
-      luceneCodecName.equals("Lucene54") && luceneVersion.equals("5.5.0")
-    );
+    Assert.assertTrue("Expected our custom codec to wrap 'Lucene54'", luceneCodecName.equals("Lucene54"));
   }
 
 }
