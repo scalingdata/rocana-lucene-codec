@@ -27,7 +27,7 @@
 
   <groupId>com.rocana</groupId>
   <artifactId>rocana-lucene-codec</artifactId>
-  <version>1.0.0-rc1</version>
+  <version>1.0.0-rc2-SNAPSHOT</version>
 
   <name>Rocana Lucene Codec</name>
   <description>
